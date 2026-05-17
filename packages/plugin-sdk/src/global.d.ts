@@ -168,6 +168,9 @@ declare global {
 
   /** Zlib 压缩，输入输出均为 hex */
   function __go_zlib_deflate(dataHex: string): string;
+
+  /** Raw DEFLATE 解压（无 zlib 头），输入输出均为 hex，用于 ZIP 文件解析 */
+  function __go_raw_inflate(dataHex: string): string;
 }
 
 export {};
