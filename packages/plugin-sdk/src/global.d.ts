@@ -133,6 +133,41 @@ declare global {
   function clearTimeout(id: number): void;
   function setInterval(fn: () => void, ms: number): number;
   function clearInterval(id: number): void;
+
+  // ===== Go 桥接函数（由 QuickJS 运行时注入） =====
+
+  /** 同步 HTTP 请求，返回 JSON 字符串 {status, statusText, headers, body, error?} */
+  function __go_fetch_sync(url: string, method: string, headersJSON: string, body: string): string;
+
+  /** 当前时间戳（毫秒） */
+  function __go_now_ms(): number;
+
+  /** Buffer.from 桥接: 将 data 按 encoding(utf8/base64/hex/latin1) 转为 hex 内部表示 */
+  function __go_buffer_from(data: string, encoding: string): string;
+
+  /** Buffer.toString 桥接: 将 hex 内部表示转为指定编码(utf8/base64/hex/latin1)字符串 */
+  function __go_buffer_to_string(dataHex: string, encoding: string): string;
+
+  /** MD5 哈希，输入 UTF-8 字符串，返回 hex 字符串 */
+  function __go_crypto_md5(str: string): string;
+
+  /** SHA256 哈希，输入 UTF-8 字符串，返回 hex 字符串 */
+  function __go_crypto_sha256(str: string): string;
+
+  /** 生成随机字节，返回 hex 字符串 */
+  function __go_crypto_random_bytes(size: number): string;
+
+  /** AES 加密 (mode: "cbc"|"ecb", PKCS7 padding)，所有参数和返回值均为 hex */
+  function __go_crypto_aes_encrypt(dataHex: string, mode: string, keyHex: string, ivHex: string): string;
+
+  /** RSA 公钥加密 (PKCS1v15)，dataHex 为 hex 数据，keyPEM 为 PEM 格式公钥，返回 hex */
+  function __go_crypto_rsa_encrypt(dataHex: string, keyPEM: string): string;
+
+  /** Zlib 解压，输入输出均为 hex */
+  function __go_zlib_inflate(dataHex: string): string;
+
+  /** Zlib 压缩，输入输出均为 hex */
+  function __go_zlib_deflate(dataHex: string): string;
 }
 
 export {};
