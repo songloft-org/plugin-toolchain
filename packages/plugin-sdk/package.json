@@ -1,6 +1,6 @@
 {
   "name": "@mimusic/plugin-sdk",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "TypeScript SDK for MiMusic JS plugin development",
   "type": "module",
   "exports": {
