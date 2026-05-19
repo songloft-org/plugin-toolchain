@@ -23,6 +23,7 @@ const VALID_PERMISSIONS = [
   'playlists.*',
   'inter-plugin',
   'command',
+  'jsenv',
 ];
 
 /**

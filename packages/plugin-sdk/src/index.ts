@@ -105,4 +105,16 @@ export function createRouter(): Router {
 }
 
 // Re-export types for convenience
-export type { Song, Playlist, HTTPRequest, HTTPResponse, PluginManifest, Mimusic } from './global';
+export type {
+  Song,
+  Playlist,
+  HTTPRequest,
+  HTTPResponse,
+  PluginManifest,
+  Mimusic,
+  MimusicJSEnv,
+  MimusicJSEnvCall,
+  MimusicJSEnvEvent,
+  MimusicJSEnvResult,
+  MimusicJSEnvParallelResult,
+} from './global';

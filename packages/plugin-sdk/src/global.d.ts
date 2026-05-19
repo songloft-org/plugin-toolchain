@@ -105,6 +105,72 @@ export interface MimusicPlugin {
   getHostUrl(): string;
 }
 
+// ===== 子 JS 环境（mimusic.jsenv） =====
+
+/** 子 env 内通过 __go_send 抛出的事件 */
+export interface MimusicJSEnvEvent {
+  /** 事件名（lx.send 的 eventName） */
+  name: string;
+  /** 事件 payload，已 JSON.stringify */
+  data: string;
+}
+
+/** execute / executeWait 的返回值 */
+export interface MimusicJSEnvResult {
+  /** 最后表达式 toString 的结果 */
+  result: string;
+  /** 本次执行收集到的事件 */
+  events: MimusicJSEnvEvent[];
+  /** 执行错误（脚本抛异常 / 超时 / env 不存在等）；正常时为空字符串 */
+  error?: string;
+}
+
+/** 给 executeParallel 用的单次调用描述 */
+export interface MimusicJSEnvCall {
+  /** plugin-local env 名（不能含 :: 或 /） */
+  name: string;
+  /** 待执行 JS 代码 */
+  code: string;
+  /** 超时（毫秒），默认 30000 */
+  timeoutMs?: number;
+  /** 等待哪些事件名（命中任一即返回），空数组等价于 execute */
+  waitEvents?: string[];
+}
+
+/** executeParallel 的返回值；successIndex < 0 表示全部失败 */
+export interface MimusicJSEnvParallelResult {
+  successIndex: number;
+  result?: MimusicJSEnvResult;
+  errors: string[];
+}
+
+/**
+ * 子 JS 环境管理 API。
+ * 每个子 env 是独立的 QuickJS VM，与父插件的全局对象完全隔离。
+ * 跨 env 真并行（同 env 串行）。
+ *
+ * 已知约束：
+ * - 子 env 默认无 mimusic.* 桥接（只用于跑用户脚本，无需访问 storage 等）；
+ *   但 fetch / setTimeout / Buffer / crypto / zlib / __go_fetch_sync 都自动可用。
+ * - 子 env 没有专用 timer goroutine：setTimeout/setInterval 仅在 executeWait
+ *   的 polling loop 内被驱动（够用于 dispatch 流程，不适合 setInterval 后台任务）。
+ * - 插件停止/重载时，所有子 env 会按 pluginID 自动回收（DestroyPluginEnvs）。
+ */
+export interface MimusicJSEnv {
+  /** 创建子 JS 环境；name 是 plugin-local，重名抛异常 */
+  create(name: string, initCode?: string): string;
+  /** 同步 eval（无 wait），适合纯计算或代码注入 */
+  execute(name: string, code: string, timeoutMs?: number): MimusicJSEnvResult;
+  /** eval + 驱动 Promise/setTimeout 直到 waitEvents 之一到达或超时 */
+  executeWait(name: string, code: string, timeoutMs: number, waitEvents: string[]): MimusicJSEnvResult;
+  /** 多 env 并行竞速；首个非 error 胜出，successIndex<0 表示全部失败 */
+  executeParallel(calls: MimusicJSEnvCall[], maxConcurrent?: number): MimusicJSEnvParallelResult;
+  /** 销毁子 env，best-effort（不存在不报错） */
+  destroy(name: string): void;
+  /** 列出本插件所有子 env（plugin-local name） */
+  list(): string[];
+}
+
 export interface Mimusic {
   log: MimusicLog;
   storage: MimusicStorage;
@@ -112,6 +178,7 @@ export interface Mimusic {
   playlists: MimusicPlaylists;
   comm: MimusicComm;
   plugin: MimusicPlugin;
+  jsenv: MimusicJSEnv;
 }
 
 // ===== 全局声明 =====
