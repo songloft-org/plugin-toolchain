@@ -90,7 +90,11 @@ export interface MimusicSongs {
 export interface MimusicPlaylists {
   list(): Promise<Playlist[]>;
   getById(id: number): Promise<Playlist | null>;
-  getSongs(playlistId: number): Promise<Song[]>;
+  /**
+   * 获取歌单中的歌曲。`options` 可选 limit/offset 控制分页；
+   * 不传 options 时返回最多 100000 条。
+   */
+  getSongs(playlistId: number, options?: { limit?: number; offset?: number }): Promise<Song[]>;
 }
 
 export interface MimusicComm {
