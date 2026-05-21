@@ -70,39 +70,43 @@ export interface MimusicLog {
   error(msg: string): void;
 }
 
+// 设计：所有 mimusic.* 接口统一返回 Promise，与 fetch 真异步语义一致。
+// 调用方必须 await。这样底层 Go 侧可以在 goroutine 中处理桥接调用，
+// 而不阻塞 QuickJS 单 VM 锁，是"插件不可用"问题的核心修复点。
+
 export interface MimusicStorage {
-  get(key: string): unknown | null;
-  set(key: string, value: unknown): void;
-  delete(key: string): void;
-  keys(): string[];
+  get(key: string): Promise<unknown | null>;
+  set(key: string, value: unknown): Promise<void>;
+  delete(key: string): Promise<void>;
+  keys(): Promise<string[]>;
 }
 
 export interface MimusicSongs {
-  list(options?: { limit?: number; offset?: number }): Song[];
-  getById(id: number): Song | null;
-  search(query: string): Song[];
+  list(options?: { limit?: number; offset?: number }): Promise<Song[]>;
+  getById(id: number): Promise<Song | null>;
+  search(query: string): Promise<Song[]>;
 }
 
 export interface MimusicPlaylists {
-  list(): Playlist[];
-  getById(id: number): Playlist | null;
-  getSongs(playlistId: number): Song[];
+  list(): Promise<Playlist[]>;
+  getById(id: number): Promise<Playlist | null>;
+  getSongs(playlistId: number): Promise<Song[]>;
 }
 
 export interface MimusicComm {
-  /** 发送单向消息到另一个插件 */
-  send(to: string, action: string, payload: unknown): void;
+  /** 发送单向消息到另一个插件（Promise 在投递完成时 resolve） */
+  send(to: string, action: string, payload: unknown): Promise<void>;
   /** RPC 调用另一个插件并等待响应 */
   call(to: string, action: string, payload: unknown, timeoutMs?: number): Promise<unknown>;
-  /** 注册消息处理器 */
-  onMessage(action: string, handler: (payload: unknown, from: string) => unknown): void;
+  /** 注册消息处理器（handler 可返回值或 Promise，框架自动 await） */
+  onMessage(action: string, handler: (payload: unknown, from: string) => unknown | Promise<unknown>): void;
 }
 
 export interface MimusicPlugin {
   /** 获取插件的 JWT Token（用于访问宿主 API） */
-  getToken(): string;
+  getToken(): Promise<string>;
   /** 获取宿主服务的基础 URL */
-  getHostUrl(): string;
+  getHostUrl(): Promise<string>;
 }
 
 // ===== 子 JS 环境（mimusic.jsenv） =====
@@ -151,24 +155,26 @@ export interface MimusicJSEnvParallelResult {
  *
  * 已知约束：
  * - 子 env 默认无 mimusic.* 桥接（只用于跑用户脚本，无需访问 storage 等）；
- *   但 fetch / setTimeout / Buffer / crypto / zlib / __go_fetch_sync 都自动可用。
+ *   fetch / setTimeout / Buffer / crypto / zlib 都自动可用，fetch 是真异步。
  * - 子 env 没有专用 timer goroutine：setTimeout/setInterval 仅在 executeWait
  *   的 polling loop 内被驱动（够用于 dispatch 流程，不适合 setInterval 后台任务）。
  * - 插件停止/重载时，所有子 env 会按 pluginID 自动回收（DestroyPluginEnvs）。
+ *
+ * 所有方法都返回 Promise；调用方必须 await。
  */
 export interface MimusicJSEnv {
-  /** 创建子 JS 环境；name 是 plugin-local，重名抛异常 */
-  create(name: string, initCode?: string): string;
+  /** 创建子 JS 环境；name 是 plugin-local，重名时 reject */
+  create(name: string, initCode?: string): Promise<string>;
   /** 同步 eval（无 wait），适合纯计算或代码注入 */
-  execute(name: string, code: string, timeoutMs?: number): MimusicJSEnvResult;
+  execute(name: string, code: string, timeoutMs?: number): Promise<MimusicJSEnvResult>;
   /** eval + 驱动 Promise/setTimeout 直到 waitEvents 之一到达或超时 */
-  executeWait(name: string, code: string, timeoutMs: number, waitEvents: string[]): MimusicJSEnvResult;
+  executeWait(name: string, code: string, timeoutMs: number, waitEvents: string[]): Promise<MimusicJSEnvResult>;
   /** 多 env 并行竞速；首个非 error 胜出，successIndex<0 表示全部失败 */
-  executeParallel(calls: MimusicJSEnvCall[], maxConcurrent?: number): MimusicJSEnvParallelResult;
+  executeParallel(calls: MimusicJSEnvCall[], maxConcurrent?: number): Promise<MimusicJSEnvParallelResult>;
   /** 销毁子 env，best-effort（不存在不报错） */
-  destroy(name: string): void;
+  destroy(name: string): Promise<void>;
   /** 列出本插件所有子 env（plugin-local name） */
-  list(): string[];
+  list(): Promise<string[]>;
 }
 
 export interface Mimusic {
@@ -187,14 +193,19 @@ declare global {
   /** MiMusic 插件专属 API 命名空间 */
   const mimusic: Mimusic;
 
-  /** 插件生命周期：初始化 */
-  function onInit(): void;
-  /** 插件生命周期：销毁 */
-  function onDeinit(): void;
-  /** 插件 HTTP 路由处理器 */
-  function onHTTPRequest(req: HTTPRequest): HTTPResponse;
+  /** 插件生命周期：初始化（可返回 Promise，框架会 await） */
+  function onInit(): void | Promise<void>;
+  /** 插件生命周期：销毁（可返回 Promise，框架会 await） */
+  function onDeinit(): void | Promise<void>;
+  /**
+   * 插件 HTTP 路由处理器。
+   * 实现可以是 async function；框架的事件循环会等待返回的 Promise settle 后
+   * 再把响应序列化为 HTTP 应答。
+   */
+  function onHTTPRequest(req: HTTPRequest): HTTPResponse | Promise<HTTPResponse>;
 
-  // 由 polyfill 注入的标准全局 API（与浏览器/Node 对齐）
+  // 由 polyfill 注入的标准全局 API（与浏览器/Node 对齐）。
+  // fetch 是真异步（Go 侧 goroutine 跑 HTTP，JS 侧通过原生 Promise 等待）。
   function fetch(input: string, init?: RequestInit): Promise<Response>;
   function setTimeout(fn: () => void, ms: number): number;
   function clearTimeout(id: number): void;
@@ -202,9 +213,7 @@ declare global {
   function clearInterval(id: number): void;
 
   // ===== Go 桥接函数（由 QuickJS 运行时注入） =====
-
-  /** 同步 HTTP 请求，返回 JSON 字符串 {status, statusText, headers, body, error?} */
-  function __go_fetch_sync(url: string, method: string, headersJSON: string, body: string): string;
+  // 注意：__go_fetch_sync 已移除；HTTP 请求统一通过 fetch（真异步）。
 
   /** 当前时间戳（毫秒） */
   function __go_now_ms(): number;
