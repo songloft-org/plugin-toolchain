@@ -1,33 +1,32 @@
 /// <reference types="@mimusic/plugin-sdk" />
 import { jsonResponse, createRouter } from '@mimusic/plugin-sdk';
 
+// Router 支持 async handler。所有 mimusic.* / fetch 调用必须 await。
+
 const router = createRouter();
 
 router.get('/hello', (req) => {
   return jsonResponse({ message: 'Hello from {{name}}!', query: req.query });
 });
 
-router.get('/songs', () => {
-  const songs = mimusic.songs.list({ limit: 10 });
+router.get('/songs', async () => {
+  const songs = await mimusic.songs.list({ limit: 10 });
   return jsonResponse({ count: songs.length, songs });
 });
 
-function onInit(): void {
+async function onInit(): Promise<void> {
   mimusic.log.info('{{name}} initialized');
 }
 
-function onDeinit(): void {
+async function onDeinit(): Promise<void> {
   mimusic.log.info('{{name}} deinitialized');
 }
 
-function onHTTPRequest(req: HTTPRequest): HTTPResponse {
-  return router.handle(req);
+async function onHTTPRequest(req: HTTPRequest): Promise<HTTPResponse> {
+  return await router.handle(req);
 }
 
 // 暴露为全局（QuickJS 需要显式声明）
-// @ts-expect-error — QuickJS global injection
 globalThis.onInit = onInit;
-// @ts-expect-error
 globalThis.onDeinit = onDeinit;
-// @ts-expect-error
 globalThis.onHTTPRequest = onHTTPRequest;

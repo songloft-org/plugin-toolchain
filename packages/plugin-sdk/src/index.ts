@@ -34,8 +34,15 @@ export function parseQuery(q: string): Record<string, string> {
 }
 
 // ===== 简易路由 =====
+//
+// 由于 mimusic.* 桥接 / fetch 都是真异步，handler 也允许返回
+// `Promise<HTTPResponse>`，框架会自动 await。同步 handler 仍然兼容（直接返回 HTTPResponse）。
 
-type RouteHandler = (req: HTTPRequest, params: Record<string, string>) => HTTPResponse;
+/** 路由 handler 返回值：同步 HTTPResponse 或异步 Promise<HTTPResponse> */
+export type RouteResult = HTTPResponse | Promise<HTTPResponse>;
+
+/** 路由 handler */
+export type RouteHandler = (req: HTTPRequest, params: Record<string, string>) => RouteResult;
 
 interface Route {
   method: string;
@@ -49,7 +56,11 @@ export interface Router {
   post(path: string, handler: RouteHandler): void;
   put(path: string, handler: RouteHandler): void;
   delete(path: string, handler: RouteHandler): void;
-  handle(req: HTTPRequest): HTTPResponse;
+  /**
+   * 处理请求。返回同步或异步 HTTPResponse；handler 是 async function 时
+   * 这里会传播 Promise，调用方必须 await 或返回它给框架（onHTTPRequest 默认是 async）。
+   */
+  handle(req: HTTPRequest): RouteResult;
 }
 
 /**
@@ -57,8 +68,8 @@ export interface Router {
  *
  * ```ts
  * const router = createRouter();
- * router.get('/hello/:name', (req, params) => jsonResponse({ hi: params.name }));
- * function onHTTPRequest(req) { return router.handle(req); }
+ * router.get('/hello/:name', async (req, params) => jsonResponse({ hi: params.name }));
+ * async function onHTTPRequest(req) { return await router.handle(req); }
  * ```
  */
 export function createRouter(): Router {
@@ -99,6 +110,7 @@ export function createRouter(): Router {
       if (!result) {
         return { statusCode: 404, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'not found' }) };
       }
+      // 直接返回 handler 结果（可能是 HTTPResponse 或 Promise<HTTPResponse>）。
       return result.handler(req, result.params);
     },
   };
