@@ -1,6 +1,6 @@
 {
   "name": "@mimusic/plugin-builder",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Build tool for MiMusic JS plugins (TS/JS → QuickJS-compatible ZIP)",
   "type": "module",
   "exports": {
