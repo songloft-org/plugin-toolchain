@@ -42,6 +42,12 @@ export interface PluginManifest {
   download_url?: string;
   entryHash: string;
   zipHash: string;
+  /**
+   * 是否对 static/ 下的 JS/CSS/字体/图片注入内容 hash 到文件名，
+   * 并改写 HTML/CSS 中的引用（防止旧缓存）。默认 true。
+   * 设为 false 适用于前端已用 Vite/Webpack 等工具自管理 hash 的场景。
+   */
+  staticHash?: boolean;
 }
 
 // ===== HTTP 请求/响应 =====

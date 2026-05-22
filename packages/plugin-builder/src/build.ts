@@ -8,6 +8,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readManifest, validateManifest } from './manifest.js';
 import { computeEntryHash, computeCanonicalZipHash, sha256Hex } from './hash.js';
+import { hashStaticAssets } from './static-assets.js';
 import type { PluginManifest } from '@mimusic/plugin-sdk';
 
 export interface BuildOptions {
@@ -123,6 +124,18 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     }
 
     console.log(`  📦 static/js/ bundled → app.bundle.js (${jsFiles.length} files merged)`);
+  }
+
+  // [3.1.1] 为 static/ 下所有 JS/CSS/字体/图片注入内容 hash 到文件名，
+  //         并改写 HTML/CSS 中的引用，防止插件更新后浏览器使用旧缓存。
+  //         可在 plugin.json 中设置 "staticHash": false 关闭（用于前端已用
+  //         Vite/Webpack 等工具自管理 hash 的场景）。
+  const staticBuildDir = join(buildDir, 'static');
+  if (existsSync(staticBuildDir) && manifest.staticHash !== false) {
+    const { renamed } = hashStaticAssets(staticBuildDir);
+    if (renamed > 0) {
+      console.log(`  🏷️  static assets hashed (${renamed} files)`);
+    }
   }
 
   // [3.2] 编译 main.js 为 main.jsc 字节码（如果 jsc 工具可用）
