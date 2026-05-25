@@ -1,6 +1,6 @@
 {
   "name": "@mimusic/jsc-linux-x64",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "QuickJS bytecode compiler for linux x64",
   "main": "index.js",
   "files": [

@@ -21,8 +21,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // 发布版依赖版本（与 monorepo 同步发布，维护时需跟随 npm 最新稳定版）
-const SDK_VERSION = '^0.9.0';
-const BUILDER_VERSION = '^0.9.0';
+const SDK_VERSION = '^0.9.1';
+const BUILDER_VERSION = '^0.9.1';
 
 const AVAILABLE_PERMISSIONS = [
   { name: 'storage (持久化存储 - storage API)', value: 'storage' },
