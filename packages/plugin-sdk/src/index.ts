@@ -116,6 +116,195 @@ export function createRouter(): Router {
   };
 }
 
+// ===== 音源插件 helper:统一的 search / music_url 接口约定 =====
+//
+// 主程序新架构(2026):
+//   - 客户端播放 URL 永远是 /api/v1/cache/{song_id}
+//   - songs 表存 (plugin_entry_path, source_data) 而非 hash + url
+//   - 主程序 SourceFetcher 通过 POST /api/music/url + source_data 获取真实 URL
+//   - search 返回的每条结果直接带 source_data,无需 urlmap 中转
+//
+// 本节 helper 把这套约定固化为标准 handler,音源插件按下面的方式接入:
+//
+//   const router = createRouter();
+//   router.post('/api/search', createSearchHandler({
+//     search: async (keyword, page, pageSize) => [
+//       { title, artist, album, duration, cover_url, source_data: {...} },
+//       ...
+//     ],
+//   }));
+//   router.post('/api/music/url', createMusicUrlHandler({
+//     resolveUrl: async (sourceData) => 'https://cdn.example.com/song.mp3',
+//     fallbackSearch: async (hint) => ({ source_data: {...}, title, artist }),
+//   }));
+
+/** 单条搜索结果。source_data 是 opaque JSON,主程序原样存进 song 表,后续 music/url 时回传。 */
+export interface SearchResultItem {
+  title: string;
+  artist: string;
+  album?: string;
+  duration: number;
+  cover_url?: string;
+  source_data: Record<string, unknown>;
+}
+
+/** search handler 配置。 */
+export interface SearchHandlerOptions {
+  /**
+   * 实际执行搜索的函数。
+   * - keyword:用户搜索关键词
+   * - page:页码(从 1 开始,可空)
+   * - pageSize:每页条数(可空)
+   * 返回 SearchResultItem[]。空数组表示无结果。
+   */
+  search: (keyword: string, page?: number, pageSize?: number) => Promise<SearchResultItem[]>;
+}
+
+/**
+ * 创建符合主程序约定的 POST /api/search handler。
+ *
+ * Request body: { keyword: string, page?: number, page_size?: number }
+ * Response: { results: SearchResultItem[] }
+ *
+ * 错误响应统一 400/500 JSON,无须插件自己处理。
+ */
+export function createSearchHandler(opts: SearchHandlerOptions): RouteHandler {
+  return async (req) => {
+    let body: Record<string, unknown> = {};
+    if (req.body) {
+      try {
+        body = typeof req.body === 'string' ? JSON.parse(req.body) : {};
+      } catch {
+        return jsonResponse({ error: 'invalid json body' }, 400);
+      }
+    }
+    const keyword = String(body.keyword || '').trim();
+    if (!keyword) {
+      return jsonResponse({ error: 'keyword is required' }, 400);
+    }
+    const page = typeof body.page === 'number' ? body.page : undefined;
+    const pageSize = typeof body.page_size === 'number' ? body.page_size : undefined;
+    try {
+      const results = await opts.search(keyword, page, pageSize);
+      return jsonResponse({ results: results || [] });
+    } catch (err) {
+      return jsonResponse({ error: String((err as Error)?.message || err) }, 500);
+    }
+  };
+}
+
+/** music_url handler 的 fallback hint(主程序在主源失败时下发) */
+export interface MusicUrlFallbackHint {
+  enabled: boolean;
+  title: string;
+  artist: string;
+  duration?: number;
+}
+
+/** fallbackSearch 的返回:找到匹配则返回新 source_data;找不到返回 null */
+export interface FallbackMatch {
+  source_data: Record<string, unknown>;
+  title?: string;
+  artist?: string;
+}
+
+/** music_url handler 配置 */
+export interface MusicUrlHandlerOptions {
+  /**
+   * 用 source_data 解析真实播放 URL。失败抛错。
+   */
+  resolveUrl: (sourceData: Record<string, unknown>) => Promise<string>;
+  /**
+   * 可选的"插件内自搜"。当 resolveUrl 失败且 hint.enabled=true 时被调用,
+   * 返回最匹配的新 source_data。返回 null 表示放弃。
+   *
+   * 实现建议:用 hint.title + hint.artist 在该插件支持的平台搜一次,
+   * 按相似度选最佳匹配。
+   */
+  fallbackSearch?: (hint: MusicUrlFallbackHint) => Promise<FallbackMatch | null>;
+}
+
+/**
+ * 创建符合主程序约定的 POST /api/music/url handler。
+ *
+ * Request body:
+ *   {
+ *     source_data: object,       // 必填
+ *     fallback?: {                // 可选,主程序在主源失败时下发
+ *       enabled: boolean,
+ *       title: string,
+ *       artist: string,
+ *       duration?: number,
+ *     }
+ *   }
+ *
+ * Response 200:
+ *   {
+ *     url: string,                          // 真实 CDN URL
+ *     source_data?: object,                 // 若 fallback 触发,返回新的 source_data
+ *     used_fallback?: boolean
+ *   }
+ *
+ * Response 404:
+ *   { error: 'source_not_available' }
+ *
+ * 链路:
+ *   1. 用入参 source_data 调 resolveUrl;成功 → 返回 url
+ *   2. 失败且 fallback.enabled=true 且配置了 fallbackSearch:
+ *      → 调 fallbackSearch(hint) 拿新 source_data
+ *      → 再调 resolveUrl(new source_data)
+ *      → 成功返回 { url, source_data: new, used_fallback: true }
+ *   3. 全失败 → 404 source_not_available
+ */
+export function createMusicUrlHandler(opts: MusicUrlHandlerOptions): RouteHandler {
+  return async (req) => {
+    let body: Record<string, unknown> = {};
+    if (req.body) {
+      try {
+        body = typeof req.body === 'string' ? JSON.parse(req.body) : {};
+      } catch {
+        return jsonResponse({ error: 'invalid json body' }, 400);
+      }
+    }
+    const sourceData = body.source_data as Record<string, unknown> | undefined;
+    if (!sourceData || typeof sourceData !== 'object') {
+      return jsonResponse({ error: 'source_data is required' }, 400);
+    }
+
+    // 1. 主路径:直接 resolveUrl(source_data)
+    try {
+      const url = await opts.resolveUrl(sourceData);
+      if (url) {
+        return jsonResponse({ url });
+      }
+    } catch {
+      // 落入 fallback
+    }
+
+    // 2. fallback 路径
+    const hint = body.fallback as MusicUrlFallbackHint | undefined;
+    if (hint && hint.enabled && opts.fallbackSearch) {
+      try {
+        const match = await opts.fallbackSearch(hint);
+        if (match && match.source_data) {
+          const url = await opts.resolveUrl(match.source_data);
+          if (url) {
+            return jsonResponse({
+              url,
+              source_data: match.source_data,
+              used_fallback: true,
+            });
+          }
+        }
+      } catch {
+        // 继续走到 404
+      }
+    }
+
+    return jsonResponse({ error: 'source_not_available' }, 404);
+  };
+}
+
 // Re-export types for convenience
 export type {
   Song,
