@@ -119,7 +119,7 @@ export function createRouter(): Router {
 // ===== 音源插件 helper:统一的 search / music_url 接口约定 =====
 //
 // 主程序新架构(2026):
-//   - 客户端播放 URL 永远是 /api/v1/cache/{song_id}
+//   - 客户端播放 URL 永远是 /api/v1/songs/{id}/play
 //   - songs 表存 (plugin_entry_path, source_data) 而非 hash + url
 //   - 主程序 SourceFetcher 通过 POST /api/music/url + source_data 获取真实 URL
 //   - search 返回的每条结果直接带 source_data,无需 urlmap 中转
