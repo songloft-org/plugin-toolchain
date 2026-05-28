@@ -17,17 +17,17 @@ importers:
 
   examples/basic:
     devDependencies:
-      '@mimusic/plugin-builder':
+      '@songloft/plugin-builder':
         specifier: workspace:^
         version: link:../../packages/plugin-builder
-      '@mimusic/plugin-sdk':
+      '@songloft/plugin-sdk':
         specifier: workspace:^
         version: link:../../packages/plugin-sdk
       typescript:
         specifier: ^5.7.0
         version: 5.9.3
 
-  packages/create-mimusic-plugin:
+  packages/create-songloft-plugin:
     dependencies:
       '@inquirer/prompts':
         specifier: ^7.0.0
@@ -45,22 +45,22 @@ importers:
 
   packages/jsc:
     optionalDependencies:
-      '@mimusic/jsc-darwin-arm64':
+      '@songloft/jsc-darwin-arm64':
         specifier: workspace:*
         version: link:../jsc-darwin-arm64
-      '@mimusic/jsc-darwin-x64':
+      '@songloft/jsc-darwin-x64':
         specifier: workspace:*
         version: link:../jsc-darwin-x64
-      '@mimusic/jsc-linux-arm64':
+      '@songloft/jsc-linux-arm64':
         specifier: workspace:*
         version: link:../jsc-linux-arm64
-      '@mimusic/jsc-linux-x64':
+      '@songloft/jsc-linux-x64':
         specifier: workspace:*
         version: link:../jsc-linux-x64
-      '@mimusic/jsc-win32-arm64':
+      '@songloft/jsc-win32-arm64':
         specifier: workspace:*
         version: link:../jsc-win32-arm64
-      '@mimusic/jsc-win32-x64':
+      '@songloft/jsc-win32-x64':
         specifier: workspace:*
         version: link:../jsc-win32-x64
 
@@ -78,7 +78,7 @@ importers:
 
   packages/plugin-builder:
     dependencies:
-      '@mimusic/jsc':
+      '@songloft/jsc':
         specifier: workspace:*
         version: link:../jsc
       esbuild:
@@ -91,7 +91,7 @@ importers:
         specifier: ^3.10.0
         version: 3.10.1
     devDependencies:
-      '@mimusic/plugin-sdk':
+      '@songloft/plugin-sdk':
         specifier: workspace:^
         version: link:../plugin-sdk
       '@types/node':

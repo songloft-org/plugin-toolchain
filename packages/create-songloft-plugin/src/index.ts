@@ -5,8 +5,8 @@ import { input, select, checkbox, confirm } from '@inquirer/prompts';
 
 /**
  * CLI 入口：
- *   npx create-mimusic-plugin <target-dir>
- *   pnpm create mimusic-plugin <target-dir>
+ *   npx create-songloft-plugin <target-dir>
+ *   pnpm create songloft-plugin <target-dir>
  *
  * 流程：
  * 1. 确定目标目录（命令行参数 > 交互输入）
@@ -72,7 +72,7 @@ function validateEntryPath(v: string): string | true {
 async function prompt(initialTarget?: string): Promise<Answers> {
   const targetDir = initialTarget
     ? initialTarget
-    : await input({ message: '目标目录名称', default: 'my-mimusic-plugin', validate: validateIdentifier });
+    : await input({ message: '目标目录名称', default: 'my-songloft-plugin', validate: validateIdentifier });
 
   const defaultEntryPath = targetDir
     .toLowerCase()
@@ -94,7 +94,7 @@ async function prompt(initialTarget?: string): Promise<Answers> {
 
   const description = await input({
     message: '插件简介',
-    default: 'A MiMusic plugin',
+    default: 'A Songloft plugin',
   });
 
   const author = await input({
@@ -215,8 +215,8 @@ async function scaffold(answers: Answers): Promise<void> {
     // package.json 特殊处理：workspace:^ → 实际发布版本
     if (base === 'package.json') {
       content = content
-        .replace(/"@mimusic\/plugin-sdk":\s*"workspace:\^?"/g, `"@mimusic/plugin-sdk": "${SDK_VERSION}"`)
-        .replace(/"@mimusic\/plugin-builder":\s*"workspace:\^?"/g, `"@mimusic/plugin-builder": "${BUILDER_VERSION}"`);
+        .replace(/"@songloft\/plugin-sdk":\s*"workspace:\^?"/g, `"@songloft/plugin-sdk": "${SDK_VERSION}"`)
+        .replace(/"@songloft\/plugin-builder":\s*"workspace:\^?"/g, `"@songloft/plugin-builder": "${BUILDER_VERSION}"`);
     }
 
     writeWithDirs(dst, content);
@@ -230,7 +230,7 @@ async function scaffold(answers: Answers): Promise<void> {
   console.log(`  ${answers.packageManager} install`);
   console.log(`  ${answers.packageManager} run build`);
   console.log('');
-  console.log('构建产物位于 dist/ 目录，可在 MiMusic 后台上传。');
+  console.log('构建产物位于 dist/ 目录，可在 Songloft 后台上传。');
 }
 
 async function main(): Promise<void> {

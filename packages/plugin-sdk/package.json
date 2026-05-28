@@ -1,7 +1,7 @@
 {
-  "name": "@mimusic/plugin-sdk",
+  "name": "@songloft/plugin-sdk",
   "version": "0.9.1",
-  "description": "TypeScript SDK for MiMusic JS plugin development",
+  "description": "TypeScript SDK for Songloft JS plugin development",
   "type": "module",
   "exports": {
     ".": {
@@ -27,19 +27,19 @@
     "typescript": "^5.7.0"
   },
   "keywords": [
-    "mimusic",
+    "songloft",
     "plugin",
     "sdk",
     "quickjs"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mimusic-org/plugin-toolchain.git",
+    "url": "git+https://github.com/songloft-org/plugin-toolchain.git",
     "directory": "packages/plugin-sdk"
   },
-  "homepage": "https://github.com/mimusic-org/plugin-toolchain/tree/main/packages/plugin-sdk#readme",
+  "homepage": "https://github.com/songloft-org/plugin-toolchain/tree/main/packages/plugin-sdk#readme",
   "bugs": {
-    "url": "https://github.com/mimusic-org/plugin-toolchain/issues"
+    "url": "https://github.com/songloft-org/plugin-toolchain/issues"
   },
   "license": "Apache-2.0",
   "publishConfig": {

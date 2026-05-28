@@ -1,5 +1,5 @@
 {
-  "name": "@mimusic/jsc-linux-arm64",
+  "name": "@songloft/jsc-linux-arm64",
   "version": "0.9.1",
   "description": "QuickJS bytecode compiler for linux arm64",
   "main": "index.js",
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mimusic-org/plugin-toolchain.git",
+    "url": "git+https://github.com/songloft-org/plugin-toolchain.git",
     "directory": "packages/jsc-linux-arm64"
   },
   "license": "MIT",

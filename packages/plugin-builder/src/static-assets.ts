@@ -1,4 +1,4 @@
-// @mimusic/plugin-builder — 前端静态资源 hash 处理
+// @songloft/plugin-builder — 前端静态资源 hash 处理
 //
 // 为 static/ 目录下的 JS/CSS/字体/图片等资源注入内容 hash 到文件名，
 // 并改写 HTML 中的 <script src> / <link href> 与 CSS 中的 url() 引用，

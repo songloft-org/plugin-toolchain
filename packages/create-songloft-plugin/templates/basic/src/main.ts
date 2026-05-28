@@ -1,7 +1,7 @@
-/// <reference types="@mimusic/plugin-sdk" />
-import { jsonResponse, createRouter } from '@mimusic/plugin-sdk';
+/// <reference types="@songloft/plugin-sdk" />
+import { jsonResponse, createRouter } from '@songloft/plugin-sdk';
 
-// Router 支持 async handler。所有 mimusic.* / fetch 调用必须 await。
+// Router 支持 async handler。所有 songloft.* / fetch 调用必须 await。
 
 const router = createRouter();
 
@@ -10,16 +10,16 @@ router.get('/hello', (req) => {
 });
 
 router.get('/songs', async () => {
-  const songs = await mimusic.songs.list({ limit: 10 });
+  const songs = await songloft.songs.list({ limit: 10 });
   return jsonResponse({ count: songs.length, songs });
 });
 
 async function onInit(): Promise<void> {
-  mimusic.log.info('{{name}} initialized');
+  songloft.log.info('{{name}} initialized');
 }
 
 async function onDeinit(): Promise<void> {
-  mimusic.log.info('{{name}} deinitialized');
+  songloft.log.info('{{name}} deinitialized');
 }
 
 async function onHTTPRequest(req: HTTPRequest): Promise<HTTPResponse> {

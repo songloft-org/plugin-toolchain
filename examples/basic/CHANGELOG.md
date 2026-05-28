@@ -1,4 +1,4 @@
-# @mimusic/example-basic
+# @songloft/example-basic
 
 ## 0.2.0
 

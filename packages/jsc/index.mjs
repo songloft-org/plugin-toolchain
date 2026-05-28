@@ -6,12 +6,12 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 const PLATFORMS = {
-  'linux-x64': '@mimusic/jsc-linux-x64',
-  'linux-arm64': '@mimusic/jsc-linux-arm64',
-  'darwin-x64': '@mimusic/jsc-darwin-x64',
-  'darwin-arm64': '@mimusic/jsc-darwin-arm64',
-  'win32-x64': '@mimusic/jsc-win32-x64',
-  'win32-arm64': '@mimusic/jsc-win32-arm64',
+  'linux-x64': '@songloft/jsc-linux-x64',
+  'linux-arm64': '@songloft/jsc-linux-arm64',
+  'darwin-x64': '@songloft/jsc-darwin-x64',
+  'darwin-arm64': '@songloft/jsc-darwin-arm64',
+  'win32-x64': '@songloft/jsc-win32-x64',
+  'win32-arm64': '@songloft/jsc-win32-arm64',
 };
 
 export function getJscBinaryPath() {
@@ -34,6 +34,6 @@ export function getJscBinaryPath() {
     const localBin = join(__dirname, 'bin', `jsc-${platform}-${arch}${ext}`);
     if (existsSync(localBin)) return localBin;
 
-    throw new Error(`Cannot find jsc binary. Install @mimusic/jsc for your platform or run 'node build.mjs' to build locally.`);
+    throw new Error(`Cannot find jsc binary. Install @songloft/jsc for your platform or run 'node build.mjs' to build locally.`);
   }
 }

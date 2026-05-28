@@ -8,8 +8,8 @@
  * 流程：
  *   1. 读取三包当前版本（必须一致，因为 linked）
  *   2. 计算下一版本号
- *   3. 同步写回 packages/{plugin-sdk,plugin-builder,create-mimusic-plugin,jsc,jsc-*}/package.json
- *   4. 同步 create-mimusic-plugin/src/index.ts 中的 SDK_VERSION / BUILDER_VERSION 常量
+ *   3. 同步写回 packages/{plugin-sdk,plugin-builder,create-songloft-plugin,jsc,jsc-*}/package.json
+ *   4. 同步 create-songloft-plugin/src/index.ts 中的 SDK_VERSION / BUILDER_VERSION 常量
  *   5. 校验 git 工作区干净 + 在 main 分支
  *   6. git commit -m "chore(release): vX.Y.Z" && git tag vX.Y.Z && git push --follow-tags
  *
@@ -27,7 +27,7 @@ const ROOT = resolve(__dirname, '..');
 const PKGS = [
   'packages/plugin-sdk/package.json',
   'packages/plugin-builder/package.json',
-  'packages/create-mimusic-plugin/package.json',
+  'packages/create-songloft-plugin/package.json',
 ];
 const JSC_MAIN_PKG = 'packages/jsc/package.json';
 const JSC_PLATFORM_PKGS = [
@@ -39,7 +39,7 @@ const JSC_PLATFORM_PKGS = [
   'packages/jsc-win32-arm64/package.json',
 ];
 const ALL_PKGS = [...PKGS, JSC_MAIN_PKG, ...JSC_PLATFORM_PKGS];
-const SCAFFOLD_INDEX = 'packages/create-mimusic-plugin/src/index.ts';
+const SCAFFOLD_INDEX = 'packages/create-songloft-plugin/src/index.ts';
 
 const args = process.argv.slice(2);
 const DRY = args.includes('--dry-run');
@@ -141,11 +141,11 @@ if (existingTags.includes(tag)) {
 
 console.log('');
 console.log(`📦 plugin-toolchain release: ${current} → ${next}  (tag: ${tag})`);
-console.log(`   - @mimusic/plugin-sdk`);
-console.log(`   - @mimusic/plugin-builder`);
-console.log(`   - create-mimusic-plugin`);
-console.log(`   - @mimusic/jsc`);
-console.log(`   - @mimusic/jsc-{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64,win32-arm64}`);
+console.log(`   - @songloft/plugin-sdk`);
+console.log(`   - @songloft/plugin-builder`);
+console.log(`   - create-songloft-plugin`);
+console.log(`   - @songloft/jsc`);
+console.log(`   - @songloft/jsc-{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64,win32-arm64}`);
 console.log('');
 
 if (!YES && !DRY) {
@@ -171,7 +171,7 @@ for (const p of allPkgs) {
   writeJson(p.path, p.json);
 }
 
-// 5. 同步 create-mimusic-plugin 脚手架版本常量
+// 5. 同步 create-songloft-plugin 脚手架版本常量
 const idxAbs = resolve(ROOT, SCAFFOLD_INDEX);
 let idxSrc = readFileSync(idxAbs, 'utf8');
 const sdkRe = /const SDK_VERSION = '\^[^']+';/;
@@ -201,4 +201,4 @@ shInherit('git push --follow-tags');
 
 console.log('');
 console.log(`✅ 已推送 ${tag}，等待 GitHub Actions 完成 npm 发布与 Release 创建。`);
-console.log(`   https://github.com/mimusic-org/plugin-toolchain/actions`);
+console.log(`   https://github.com/songloft-org/plugin-toolchain/actions`);

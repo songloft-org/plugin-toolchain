@@ -1,12 +1,13 @@
 {
-  "name": "@songloft/example-basic",
-  "version": "0.2.0",
+  "name": "{{entryPath}}",
+  "version": "0.1.0",
+  "description": "{{description}}",
   "private": true,
-  "description": "Basic Songloft plugin example — demonstrates router, jsonResponse, and songloft API usage.",
   "scripts": {
     "build": "songloft-plugin build",
+    "dev": "songloft-plugin dev",
     "validate": "songloft-plugin validate",
-    "dev": "songloft-plugin dev"
+    "publish:release": "songloft-plugin publish"
   },
   "devDependencies": {
     "@songloft/plugin-sdk": "workspace:^",

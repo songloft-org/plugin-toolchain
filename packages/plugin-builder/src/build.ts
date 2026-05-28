@@ -1,4 +1,4 @@
-// @mimusic/plugin-builder — 核心 build 逻辑
+// @songloft/plugin-builder — 核心 build 逻辑
 
 import * as esbuild from 'esbuild';
 import JSZip from 'jszip';
@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { readManifest, validateManifest } from './manifest.js';
 import { computeEntryHash, computeCanonicalZipHash, sha256Hex } from './hash.js';
 import { hashStaticAssets } from './static-assets.js';
-import type { PluginManifest } from '@mimusic/plugin-sdk';
+import type { PluginManifest } from '@songloft/plugin-sdk';
 
 export interface BuildOptions {
   cwd: string;
@@ -185,7 +185,7 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
   const metaPath = join(outDir, `${manifest.entryPath}.json`);
   writeFileSync(metaPath, JSON.stringify({
     version: manifest.version,
-    download_url: `https://github.com/mimusic-org/plugins/releases/download/jsplugin-${manifest.entryPath}-${manifest.version}/${manifest.entryPath}.jsplugin.zip`,
+    download_url: `https://github.com/songloft-org/plugins/releases/download/jsplugin-${manifest.entryPath}-${manifest.version}/${manifest.entryPath}.jsplugin.zip`,
   }, null, 2));
 
   // [9] 输出报告
@@ -220,7 +220,7 @@ export async function validatePlugin(cwd: string): Promise<ValidationResult> {
 
   // hash 校验
   if (!manifest.entryHash || !manifest.zipHash) {
-    errors.push({ field: 'hash', message: 'entryHash and zipHash are required. Run `mimusic-plugin build` first.' });
+    errors.push({ field: 'hash', message: 'entryHash and zipHash are required. Run `songloft-plugin build` first.' });
   }
 
   return { valid: errors.length === 0, errors };
@@ -228,13 +228,13 @@ export async function validatePlugin(cwd: string): Promise<ValidationResult> {
 
 // --- 工具 ---
 
-import { getJscBinaryPath } from '@mimusic/jsc';
+import { getJscBinaryPath } from '@songloft/jsc';
 import { readdirSync, statSync } from 'node:fs';
 
 /**
  * 查找 jsc 二进制文件
  * 优先级：
- *   1. @mimusic/jsc workspace 包中对应当前平台的预编译二进制
+ *   1. @songloft/jsc workspace 包中对应当前平台的预编译二进制
  *   2. PATH 中的 jsc 命令
  *   3. 项目根目录的 jsc 兼容旧路径
  */
@@ -242,7 +242,7 @@ function findJscBinary(): string | null {
   // 获取当前文件所在目录（兼容 ESM 和 CJS）
   const currentDir = dirname(fileURLToPath(import.meta.url));
 
-  // 1. 通过 @mimusic/jsc 包定位预编译二进制
+  // 1. 通过 @songloft/jsc 包定位预编译二进制
   try {
     const jscPath = getJscBinaryPath();
     if (existsSync(jscPath)) return jscPath;
@@ -258,8 +258,8 @@ function findJscBinary(): string | null {
     // 继续尝试下一个路径
   }
 
-  // 3. 兼容旧路径：项目根目录的 jsc (mimusic/jsc)
-  // 从 src/ 或 dist/ → plugin-builder/ → packages/ → plugin-toolchain/ → mimusic/
+  // 3. 兼容旧路径：项目根目录的 jsc (songloft/jsc)
+  // 从 src/ 或 dist/ → plugin-builder/ → packages/ → plugin-toolchain/ → songloft/
   const projectJsc = join(currentDir, '..', '..', '..', '..', 'jsc');
   if (existsSync(projectJsc)) return projectJsc;
 

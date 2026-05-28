@@ -1,4 +1,4 @@
-// @mimusic/plugin-builder — hash 计算模块
+// @songloft/plugin-builder — hash 计算模块
 // 与后端 Go 版本 ComputeCanonicalZipHash / ComputeEntryHash 算法完全一致。
 
 import { createHash } from 'node:crypto';

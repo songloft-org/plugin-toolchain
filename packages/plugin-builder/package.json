@@ -1,7 +1,7 @@
 {
-  "name": "@mimusic/plugin-builder",
+  "name": "@songloft/plugin-builder",
   "version": "0.9.1",
-  "description": "Build tool for MiMusic JS plugins (TS/JS → QuickJS-compatible ZIP)",
+  "description": "Build tool for Songloft JS plugins (TS/JS → QuickJS-compatible ZIP)",
   "type": "module",
   "exports": {
     ".": {
@@ -14,7 +14,7 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "bin": {
-    "mimusic-plugin": "./dist/cli.js"
+    "songloft-plugin": "./dist/cli.js"
   },
   "files": [
     "dist",
@@ -26,31 +26,31 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@mimusic/jsc": "workspace:*",
+    "@songloft/jsc": "workspace:*",
     "esbuild": "^0.25.0",
     "jszip": "^3.10.0",
     "glob": "^11.0.0"
   },
   "devDependencies": {
-    "@mimusic/plugin-sdk": "workspace:^",
+    "@songloft/plugin-sdk": "workspace:^",
     "tsup": "^8.0.0",
     "typescript": "^5.7.0",
     "@types/node": "^22.0.0"
   },
   "keywords": [
-    "mimusic",
+    "songloft",
     "plugin",
     "builder",
     "quickjs"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mimusic-org/plugin-toolchain.git",
+    "url": "git+https://github.com/songloft-org/plugin-toolchain.git",
     "directory": "packages/plugin-builder"
   },
-  "homepage": "https://github.com/mimusic-org/plugin-toolchain/tree/main/packages/plugin-builder#readme",
+  "homepage": "https://github.com/songloft-org/plugin-toolchain/tree/main/packages/plugin-builder#readme",
   "bugs": {
-    "url": "https://github.com/mimusic-org/plugin-toolchain/issues"
+    "url": "https://github.com/songloft-org/plugin-toolchain/issues"
   },
   "license": "Apache-2.0",
   "publishConfig": {
