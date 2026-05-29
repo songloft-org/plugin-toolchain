@@ -1,7 +1,7 @@
-/// <reference types="@mimusic/plugin-sdk" />
-import { jsonResponse, createRouter } from '@mimusic/plugin-sdk';
+/// <reference types="@songloft/plugin-sdk" />
+import { jsonResponse, createRouter } from '@songloft/plugin-sdk';
 
-// Router 支持 async handler；所有 mimusic.* 桥接调用必须 await。
+// Router 支持 async handler；所有 songloft.* 桥接调用必须 await。
 
 const router = createRouter();
 
@@ -15,7 +15,7 @@ router.get('/hello', (req) => {
 router.get('/songs', async (req) => {
   const limitStr = (req.query as unknown as Record<string, string>)['limit'] ?? '10';
   const limit = Math.max(1, Math.min(100, Number.parseInt(limitStr, 10) || 10));
-  const songs = await mimusic.songs.list({ limit });
+  const songs = await songloft.songs.list({ limit });
   return jsonResponse({ count: songs.length, songs });
 });
 
@@ -24,7 +24,7 @@ router.get('/songs/:id', async (_req, params) => {
   if (!Number.isFinite(id) || id <= 0) {
     return jsonResponse({ error: 'invalid id' }, 400);
   }
-  const song = await mimusic.songs.getById(id);
+  const song = await songloft.songs.getById(id);
   if (!song) return jsonResponse({ error: 'not found' }, 404);
   return jsonResponse(song);
 });
@@ -38,11 +38,11 @@ router.get('/', () => {
 });
 
 async function onInit(): Promise<void> {
-  mimusic.log.info('example-basic initialized');
+  songloft.log.info('example-basic initialized');
 }
 
 async function onDeinit(): Promise<void> {
-  mimusic.log.info('example-basic deinitialized');
+  songloft.log.info('example-basic deinitialized');
 }
 
 async function onHTTPRequest(req: HTTPRequest): Promise<HTTPResponse> {

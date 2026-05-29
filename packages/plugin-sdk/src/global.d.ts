@@ -1,4 +1,4 @@
-// @mimusic/plugin-sdk — 全局类型声明
+// @songloft/plugin-sdk — 全局类型声明
 // 该文件由 SDK 包安装后自动生效，为 QuickJS 运行时注入的全局对象提供类型。
 
 // ===== 数据模型 =====
@@ -68,32 +68,32 @@ export interface HTTPResponse {
   body?: string | Uint8Array;
 }
 
-// ===== mimusic 全局 API =====
+// ===== songloft 全局 API =====
 
-export interface MimusicLog {
+export interface SongloftLog {
   info(msg: string): void;
   warn(msg: string): void;
   error(msg: string): void;
 }
 
-// 设计：所有 mimusic.* 接口统一返回 Promise，与 fetch 真异步语义一致。
+// 设计：所有 songloft.* 接口统一返回 Promise，与 fetch 真异步语义一致。
 // 调用方必须 await。这样底层 Go 侧可以在 goroutine 中处理桥接调用，
 // 而不阻塞 QuickJS 单 VM 锁，是"插件不可用"问题的核心修复点。
 
-export interface MimusicStorage {
+export interface SongloftStorage {
   get(key: string): Promise<unknown | null>;
   set(key: string, value: unknown): Promise<void>;
   delete(key: string): Promise<void>;
   keys(): Promise<string[]>;
 }
 
-export interface MimusicSongs {
+export interface SongloftSongs {
   list(options?: { limit?: number; offset?: number }): Promise<Song[]>;
   getById(id: number): Promise<Song | null>;
   search(query: string): Promise<Song[]>;
 }
 
-export interface MimusicPlaylists {
+export interface SongloftPlaylists {
   list(): Promise<Playlist[]>;
   getById(id: number): Promise<Playlist | null>;
   /**
@@ -103,7 +103,7 @@ export interface MimusicPlaylists {
   getSongs(playlistId: number, options?: { limit?: number; offset?: number }): Promise<Song[]>;
 }
 
-export interface MimusicComm {
+export interface SongloftComm {
   /** 发送单向消息到另一个插件（Promise 在投递完成时 resolve） */
   send(to: string, action: string, payload: unknown): Promise<void>;
   /** RPC 调用另一个插件并等待响应 */
@@ -112,17 +112,17 @@ export interface MimusicComm {
   onMessage(action: string, handler: (payload: unknown, from: string) => unknown | Promise<unknown>): void;
 }
 
-export interface MimusicPlugin {
+export interface SongloftPlugin {
   /** 获取插件的 JWT Token（用于访问宿主 API） */
   getToken(): Promise<string>;
   /** 获取宿主服务的基础 URL */
   getHostUrl(): Promise<string>;
 }
 
-// ===== 子 JS 环境（mimusic.jsenv） =====
+// ===== 子 JS 环境（songloft.jsenv） =====
 
 /** 子 env 内通过 __go_send 抛出的事件 */
-export interface MimusicJSEnvEvent {
+export interface SongloftJSEnvEvent {
   /** 事件名（lx.send 的 eventName） */
   name: string;
   /** 事件 payload，已 JSON.stringify */
@@ -130,17 +130,17 @@ export interface MimusicJSEnvEvent {
 }
 
 /** execute / executeWait 的返回值 */
-export interface MimusicJSEnvResult {
+export interface SongloftJSEnvResult {
   /** 最后表达式 toString 的结果 */
   result: string;
   /** 本次执行收集到的事件 */
-  events: MimusicJSEnvEvent[];
+  events: SongloftJSEnvEvent[];
   /** 执行错误（脚本抛异常 / 超时 / env 不存在等）；正常时为空字符串 */
   error?: string;
 }
 
 /** 给 executeParallel 用的单次调用描述 */
-export interface MimusicJSEnvCall {
+export interface SongloftJSEnvCall {
   /** plugin-local env 名（不能含 :: 或 /） */
   name: string;
   /** 待执行 JS 代码 */
@@ -152,9 +152,9 @@ export interface MimusicJSEnvCall {
 }
 
 /** executeParallel 的返回值；successIndex < 0 表示全部失败 */
-export interface MimusicJSEnvParallelResult {
+export interface SongloftJSEnvParallelResult {
   successIndex: number;
-  result?: MimusicJSEnvResult;
+  result?: SongloftJSEnvResult;
   errors: string[];
 }
 
@@ -164,7 +164,7 @@ export interface MimusicJSEnvParallelResult {
  * 跨 env 真并行（同 env 串行）。
  *
  * 已知约束：
- * - 子 env 默认无 mimusic.* 桥接（只用于跑用户脚本，无需访问 storage 等）；
+ * - 子 env 默认无 songloft.* 桥接（只用于跑用户脚本，无需访问 storage 等）；
  *   fetch / setTimeout / Buffer / crypto / zlib 都自动可用，fetch 是真异步。
  * - 子 env 没有专用 timer goroutine：setTimeout/setInterval 仅在 executeWait
  *   的 polling loop 内被驱动（够用于 dispatch 流程，不适合 setInterval 后台任务）。
@@ -172,36 +172,36 @@ export interface MimusicJSEnvParallelResult {
  *
  * 所有方法都返回 Promise；调用方必须 await。
  */
-export interface MimusicJSEnv {
+export interface SongloftJSEnv {
   /** 创建子 JS 环境；name 是 plugin-local，重名时 reject */
   create(name: string, initCode?: string): Promise<string>;
   /** 同步 eval（无 wait），适合纯计算或代码注入 */
-  execute(name: string, code: string, timeoutMs?: number): Promise<MimusicJSEnvResult>;
+  execute(name: string, code: string, timeoutMs?: number): Promise<SongloftJSEnvResult>;
   /** eval + 驱动 Promise/setTimeout 直到 waitEvents 之一到达或超时 */
-  executeWait(name: string, code: string, timeoutMs: number, waitEvents: string[]): Promise<MimusicJSEnvResult>;
+  executeWait(name: string, code: string, timeoutMs: number, waitEvents: string[]): Promise<SongloftJSEnvResult>;
   /** 多 env 并行竞速；首个非 error 胜出，successIndex<0 表示全部失败 */
-  executeParallel(calls: MimusicJSEnvCall[], maxConcurrent?: number): Promise<MimusicJSEnvParallelResult>;
+  executeParallel(calls: SongloftJSEnvCall[], maxConcurrent?: number): Promise<SongloftJSEnvParallelResult>;
   /** 销毁子 env，best-effort（不存在不报错） */
   destroy(name: string): Promise<void>;
   /** 列出本插件所有子 env（plugin-local name） */
   list(): Promise<string[]>;
 }
 
-export interface Mimusic {
-  log: MimusicLog;
-  storage: MimusicStorage;
-  songs: MimusicSongs;
-  playlists: MimusicPlaylists;
-  comm: MimusicComm;
-  plugin: MimusicPlugin;
-  jsenv: MimusicJSEnv;
+export interface Songloft {
+  log: SongloftLog;
+  storage: SongloftStorage;
+  songs: SongloftSongs;
+  playlists: SongloftPlaylists;
+  comm: SongloftComm;
+  plugin: SongloftPlugin;
+  jsenv: SongloftJSEnv;
 }
 
 // ===== 全局声明 =====
 
 declare global {
-  /** MiMusic 插件专属 API 命名空间 */
-  const mimusic: Mimusic;
+  /** Songloft 插件专属 API 命名空间 */
+  const songloft: Songloft;
 
   /** 插件生命周期：初始化（可返回 Promise，框架会 await） */
   function onInit(): void | Promise<void>;

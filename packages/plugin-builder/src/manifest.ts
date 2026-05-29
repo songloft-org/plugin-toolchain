@@ -1,6 +1,6 @@
-// @mimusic/plugin-builder — manifest 校验模块
+// @songloft/plugin-builder — manifest 校验模块
 
-import type { PluginManifest } from '@mimusic/plugin-sdk';
+import type { PluginManifest } from '@songloft/plugin-sdk';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

@@ -107,7 +107,7 @@ jobs:
           VERSION="${TAG#v}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          for pkg in plugin-sdk plugin-builder create-mimusic-plugin jsc; do
+          for pkg in plugin-sdk plugin-builder create-songloft-plugin jsc; do
             PKG_VER=$(node -p "require('./packages/$pkg/package.json').version")
             if [ "$PKG_VER" != "$VERSION" ]; then
               echo "❌ packages/$pkg/package.json version=$PKG_VER does not match tag=$VERSION"
@@ -136,21 +136,21 @@ jobs:
           done
 
       - name: Publish all packages to npm
-        # 先发布 jsc 平台子包（被 @mimusic/jsc 主包 optionalDependencies 引用）
-        # 再发布其他所有包（含 @mimusic/jsc 主包）
+        # 先发布 jsc 平台子包（被 @songloft/jsc 主包 optionalDependencies 引用）
+        # 再发布其他所有包（含 @songloft/jsc 主包）
         run: |
           set -e
           # 1. Publish jsc platform sub-packages first
           for pkg in jsc-linux-x64 jsc-linux-arm64 jsc-darwin-x64 jsc-darwin-arm64 jsc-win32-x64 jsc-win32-arm64; do
-            echo "Publishing @mimusic/$pkg..."
+            echo "Publishing @songloft/$pkg..."
             cd "packages/$pkg"
             npm publish --access public --provenance || echo "⚠️ $pkg publish failed (may already exist)"
             cd ../..
           done
-          # 2. Publish remaining packages (plugin-sdk, plugin-builder, create-mimusic-plugin, jsc)
+          # 2. Publish remaining packages (plugin-sdk, plugin-builder, create-songloft-plugin, jsc)
           pnpm --filter "./packages/plugin-sdk" publish --access public --no-git-checks
           pnpm --filter "./packages/plugin-builder" publish --access public --no-git-checks
-          pnpm --filter "./packages/create-mimusic-plugin" publish --access public --no-git-checks
+          pnpm --filter "./packages/create-songloft-plugin" publish --access public --no-git-checks
           pnpm --filter "./packages/jsc" publish --access public --no-git-checks
         env:
           NPM_CONFIG_PROVENANCE: 'true'
@@ -179,16 +179,16 @@ jobs:
             echo "## Published Packages"
             echo
             VER="${TAG#v}"
-            echo "- \`@mimusic/plugin-sdk@${VER}\`"
-            echo "- \`@mimusic/plugin-builder@${VER}\`"
-            echo "- \`create-mimusic-plugin@${VER}\`"
-            echo "- \`@mimusic/jsc@${VER}\`"
-            echo "- \`@mimusic/jsc-linux-x64@${VER}\`"
-            echo "- \`@mimusic/jsc-linux-arm64@${VER}\`"
-            echo "- \`@mimusic/jsc-darwin-x64@${VER}\`"
-            echo "- \`@mimusic/jsc-darwin-arm64@${VER}\`"
-            echo "- \`@mimusic/jsc-win32-x64@${VER}\`"
-            echo "- \`@mimusic/jsc-win32-arm64@${VER}\`"
+            echo "- \`@songloft/plugin-sdk@${VER}\`"
+            echo "- \`@songloft/plugin-builder@${VER}\`"
+            echo "- \`create-songloft-plugin@${VER}\`"
+            echo "- \`@songloft/jsc@${VER}\`"
+            echo "- \`@songloft/jsc-linux-x64@${VER}\`"
+            echo "- \`@songloft/jsc-linux-arm64@${VER}\`"
+            echo "- \`@songloft/jsc-darwin-x64@${VER}\`"
+            echo "- \`@songloft/jsc-darwin-arm64@${VER}\`"
+            echo "- \`@songloft/jsc-win32-x64@${VER}\`"
+            echo "- \`@songloft/jsc-win32-arm64@${VER}\`"
           } > RELEASE_NOTES.md
           cat RELEASE_NOTES.md
 

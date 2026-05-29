@@ -1,6 +1,6 @@
 {
-  "name": "@mimusic/jsc-win32-arm64",
-  "version": "0.9.1",
+  "name": "@songloft/jsc-win32-arm64",
+  "version": "2.0.0-alpha.1",
   "description": "QuickJS bytecode compiler for win32 arm64",
   "main": "index.js",
   "files": [
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mimusic-org/plugin-toolchain.git",
+    "url": "git+https://github.com/songloft-org/plugin-toolchain.git",
     "directory": "packages/jsc-win32-arm64"
   },
   "license": "MIT",

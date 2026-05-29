@@ -1,4 +1,4 @@
-// @mimusic/plugin-sdk — 可选 helper 工具函数
+// @songloft/plugin-sdk — 可选 helper 工具函数
 // 在 QuickJS 中可直接运行（无 Node API 依赖）。
 
 import type { HTTPResponse, HTTPRequest } from './global';
@@ -35,7 +35,7 @@ export function parseQuery(q: string): Record<string, string> {
 
 // ===== 简易路由 =====
 //
-// 由于 mimusic.* 桥接 / fetch 都是真异步，handler 也允许返回
+// 由于 songloft.* 桥接 / fetch 都是真异步，handler 也允许返回
 // `Promise<HTTPResponse>`，框架会自动 await。同步 handler 仍然兼容（直接返回 HTTPResponse）。
 
 /** 路由 handler 返回值：同步 HTTPResponse 或异步 Promise<HTTPResponse> */
@@ -312,10 +312,10 @@ export type {
   HTTPRequest,
   HTTPResponse,
   PluginManifest,
-  Mimusic,
-  MimusicJSEnv,
-  MimusicJSEnvCall,
-  MimusicJSEnvEvent,
-  MimusicJSEnvResult,
-  MimusicJSEnvParallelResult,
+  Songloft,
+  SongloftJSEnv,
+  SongloftJSEnvCall,
+  SongloftJSEnvEvent,
+  SongloftJSEnvResult,
+  SongloftJSEnvParallelResult,
 } from './global';

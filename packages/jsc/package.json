@@ -1,6 +1,6 @@
 {
-  "name": "@mimusic/jsc",
-  "version": "0.9.1",
+  "name": "@songloft/jsc",
+  "version": "2.0.0-alpha.1",
   "type": "module",
   "exports": {
     ".": {
@@ -13,19 +13,19 @@
     "index.d.mts"
   ],
   "optionalDependencies": {
-    "@mimusic/jsc-linux-x64": "workspace:*",
-    "@mimusic/jsc-linux-arm64": "workspace:*",
-    "@mimusic/jsc-darwin-x64": "workspace:*",
-    "@mimusic/jsc-darwin-arm64": "workspace:*",
-    "@mimusic/jsc-win32-x64": "workspace:*",
-    "@mimusic/jsc-win32-arm64": "workspace:*"
+    "@songloft/jsc-linux-x64": "workspace:*",
+    "@songloft/jsc-linux-arm64": "workspace:*",
+    "@songloft/jsc-darwin-x64": "workspace:*",
+    "@songloft/jsc-darwin-arm64": "workspace:*",
+    "@songloft/jsc-win32-x64": "workspace:*",
+    "@songloft/jsc-win32-arm64": "workspace:*"
   },
   "scripts": {
     "build": "node build.mjs"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mimusic-org/plugin-toolchain.git",
+    "url": "git+https://github.com/songloft-org/plugin-toolchain.git",
     "directory": "packages/jsc"
   },
   "license": "Apache-2.0",

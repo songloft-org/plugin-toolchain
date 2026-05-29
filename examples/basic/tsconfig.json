@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "types": ["@mimusic/plugin-sdk"],
+    "types": ["@songloft/plugin-sdk"],
     "rootDir": "src",
     "outDir": "build",
     "noEmit": true

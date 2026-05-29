@@ -1,12 +1,12 @@
-// @mimusic/plugin-builder — dev 命令：watch 源码 + 自动构建上传到本地 MiMusic 实例
+// @songloft/plugin-builder — dev 命令：watch 源码 + 自动构建上传到本地 Songloft 实例
 
 import { existsSync, readFileSync, writeFileSync, watch } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createInterface } from 'node:readline';
 import { buildPlugin } from './build.js';
-import type { PluginManifest } from '@mimusic/plugin-sdk';
+import type { PluginManifest } from '@songloft/plugin-sdk';
 
-const CONFIG_FILE = '.mimusic-dev.json';
+const CONFIG_FILE = '.songloft-dev.json';
 const DEFAULT_HOST = 'http://localhost:58091';
 const WATCH_DIRS = ['src', 'static'];
 const WATCH_FILES = ['plugin.json'];
@@ -161,7 +161,7 @@ async function uploadWithAuthRetry(
 
 // ============ session / auth ============
 //
-// 仅持久化账号密码到 .mimusic-dev.json；每次启动用它登录拿一个新 token，
+// 仅持久化账号密码到 .songloft-dev.json；每次启动用它登录拿一个新 token，
 // 不再缓存 token。这样用户无需关心 token 过期 / 刷新。
 
 async function ensureAuth(
@@ -197,7 +197,7 @@ async function doLogin(
       state.config = { ...state.config, password: undefined };
       saveConfig(cwd, state.config);
       throw new Error(
-        'cached password rejected by server; cleared .mimusic-dev.json, please re-run',
+        'cached password rejected by server; cleared .songloft-dev.json, please re-run',
       );
     }
     throw err;
@@ -212,7 +212,7 @@ async function doLogin(
   if (changed) {
     state.config = { ...state.config, host, username, password };
     saveConfig(cwd, state.config);
-    console.log(`  💾 credentials saved to .mimusic-dev.json`);
+    console.log(`  💾 credentials saved to .songloft-dev.json`);
   }
   console.log(`  🔑 logged in as ${username}`);
 }

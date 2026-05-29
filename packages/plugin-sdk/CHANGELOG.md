@@ -1,4 +1,4 @@
-# @mimusic/plugin-sdk
+# @songloft/plugin-sdk
 
 ## 0.3.0
 
