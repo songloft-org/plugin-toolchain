@@ -1,6 +1,6 @@
 {
   "name": "@songloft/plugin-builder",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Build tool for Songloft JS plugins (TS/JS → QuickJS-compatible ZIP)",
   "type": "module",
   "exports": {
