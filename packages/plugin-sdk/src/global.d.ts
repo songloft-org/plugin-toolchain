@@ -187,6 +187,39 @@ export interface SongloftJSEnv {
   list(): Promise<string[]>;
 }
 
+// ===== 外部命令 / 可执行文件管理（songloft.command） =====
+
+export interface CommandExecResult {
+  exitCode: number;
+  stdout: string;
+  stderr: string;
+}
+
+/**
+ * 外部命令与可执行文件管理 API。
+ *
+ * - exec: 一次性运行命令并等待结束（最长 300s）
+ * - start/stop/isRunning: 后台进程生命周期管理
+ * - download/deleteBin/listBin/exists: 插件 bin/ 目录文件管理
+ *
+ * program 解析顺序：插件 bin/ 目录 → 系统 PATH。
+ * 所有方法都返回 Promise；调用方必须 await。
+ */
+export interface SongloftCommand {
+  exec(program: string, args?: string[], options?: {
+    timeout?: number; stdin?: string; env?: Record<string, string>;
+  }): Promise<CommandExecResult>;
+  start(name: string, program: string, args?: string[], options?: {
+    env?: Record<string, string>;
+  }): Promise<{ pid: number }>;
+  stop(name: string): Promise<void>;
+  isRunning(name: string): Promise<boolean>;
+  download(url: string, filename: string): Promise<void>;
+  deleteBin(filename: string): Promise<void>;
+  listBin(): Promise<string[]>;
+  exists(filename: string): Promise<boolean>;
+}
+
 export interface Songloft {
   log: SongloftLog;
   storage: SongloftStorage;
@@ -195,6 +228,7 @@ export interface Songloft {
   comm: SongloftComm;
   plugin: SongloftPlugin;
   jsenv: SongloftJSEnv;
+  command: SongloftCommand;
 }
 
 // ===== 全局声明 =====

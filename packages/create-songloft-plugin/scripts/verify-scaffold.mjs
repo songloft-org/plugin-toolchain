@@ -5,12 +5,12 @@ import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 
-const SDK_VERSION = '^0.3.0';
-const BUILDER_VERSION = '^0.4.0';
+const SDK_VERSION = '^2.1.0';
+const BUILDER_VERSION = '^2.1.0';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const TEMPLATE_ROOT = join(__dirname, '..', 'templates', 'basic');
+const TEMPLATE_ROOT = join(__dirname, '..', 'templates', 'base');
 const TARGET = join(tmpdir(), 'verify-scaffold-output');
 
 if (existsSync(TARGET)) rmSync(TARGET, { recursive: true });

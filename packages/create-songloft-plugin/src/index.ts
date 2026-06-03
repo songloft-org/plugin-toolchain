@@ -10,19 +10,18 @@ import { input, select, checkbox, confirm } from '@inquirer/prompts';
  *
  * 流程：
  * 1. 确定目标目录（命令行参数 > 交互输入）
- * 2. 交互式询问 name / description / author / entryPath / permissions / package-manager
- * 3. 从 templates/basic/ 拷贝文件到目标目录
- * 4. 将 {{name}} / {{entryPath}} / {{description}} / {{author}} / {{permissions}} / {{year}} 占位符替换为实际值
+ * 2. 交互式询问 name / description / author / entryPath / permissions / features / package-manager
+ * 3. 根据选择的功能，合并 templates/base/ + 选中的叠加层到目标目录
+ * 4. 将 {{name}} / {{entryPath}} 等占位符替换为实际值
  * 5. _gitignore 重命名为 .gitignore
- * 6. package.json 中的 workspace:^ 替换为实际 semver（开发期使用，发布后为正常版本号）
+ * 6. package.json 中的 workspace:^ 替换为实际 semver
  */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 发布版依赖版本（与 monorepo 同步发布，维护时需跟随 npm 最新稳定版）
-const SDK_VERSION = '^2.0.0-alpha.1';
-const BUILDER_VERSION = '^2.0.0-alpha.1';
+const SDK_VERSION = '^2.1.0';
+const BUILDER_VERSION = '^2.1.0';
 
 const AVAILABLE_PERMISSIONS = [
   { name: 'storage (持久化存储 - storage API)', value: 'storage' },
@@ -31,7 +30,13 @@ const AVAILABLE_PERMISSIONS = [
   { name: 'playlists.read (读取歌单及歌单中的歌曲)', value: 'playlists.read' },
   { name: 'playlists.write (创建/修改/删除歌单及其歌曲)', value: 'playlists.write' },
   { name: 'inter-plugin (与其他插件通信)', value: 'inter-plugin' },
-  { name: 'command (执行宿主提供的指令)', value: 'command' },
+  { name: 'command (执行外部命令/管理可执行文件)', value: 'command' },
+  { name: 'jsenv (创建/执行子 JS 沙箱环境)', value: 'jsenv' },
+];
+
+const AVAILABLE_FEATURES = [
+  { name: '静态页面 (static/) — 包含 HTML/CSS/JS 模板和 API 封装库', value: 'static' },
+  { name: '可执行文件管理 (bin/) — 打包/下载/运行外部程序', value: 'bin' },
 ];
 
 interface Answers {
@@ -41,6 +46,7 @@ interface Answers {
   description: string;
   author: string;
   permissions: string[];
+  features: string[];
   packageManager: 'pnpm' | 'npm' | 'yarn';
 }
 
@@ -107,6 +113,11 @@ async function prompt(initialTarget?: string): Promise<Answers> {
     choices: AVAILABLE_PERMISSIONS,
   });
 
+  const features = await checkbox({
+    message: '选择附加功能（可多选，可跳过）',
+    choices: AVAILABLE_FEATURES,
+  });
+
   const packageManager = (await select({
     message: '选择包管理器',
     choices: [
@@ -117,14 +128,28 @@ async function prompt(initialTarget?: string): Promise<Answers> {
     default: 'pnpm',
   })) as 'pnpm' | 'npm' | 'yarn';
 
-  return { targetDir, name, entryPath, description, author, permissions, packageManager };
+  return { targetDir, name, entryPath, description, author, permissions, features, packageManager };
 }
 
-function resolveTemplateRoot(): string {
-  // 发布后 dist/index.js 在 package 根目录 dist 下，模板在 package 根目录 templates/basic 下
-  const candidate = resolve(__dirname, '..', 'templates', 'basic');
-  if (existsSync(candidate)) return candidate;
-  throw new Error(`模板目录不存在: ${candidate}`);
+function resolveTemplateDirs(features: string[]): string[] {
+  const templatesRoot = resolve(__dirname, '..', 'templates');
+  const dirs: string[] = [];
+
+  const baseDir = join(templatesRoot, 'base');
+  if (!existsSync(baseDir)) throw new Error(`模板目录不存在: ${baseDir}`);
+  dirs.push(baseDir);
+
+  if (features.includes('static')) {
+    const staticDir = join(templatesRoot, 'with-static');
+    if (existsSync(staticDir)) dirs.push(staticDir);
+  }
+
+  if (features.includes('bin')) {
+    const binDir = join(templatesRoot, 'with-bin');
+    if (existsSync(binDir)) dirs.push(binDir);
+  }
+
+  return dirs;
 }
 
 function walk(dir: string, base: string, out: string[]): void {
@@ -174,13 +199,19 @@ async function scaffold(answers: Answers): Promise<void> {
     mkdirSync(targetAbs, { recursive: true });
   }
 
-  const templateRoot = resolveTemplateRoot();
-  const files: string[] = [];
-  walk(templateRoot, templateRoot, files);
+  const templateDirs = resolveTemplateDirs(answers.features);
 
-  // 纯文本后缀（会进行变量替换 + workspace 依赖重写）
+  // 收集所有文件（后者覆盖前者的同名文件）
+  const fileMap = new Map<string, string>(); // rel -> srcDir
+  for (const dir of templateDirs) {
+    const files: string[] = [];
+    walk(dir, dir, files);
+    for (const rel of files) {
+      fileMap.set(rel, dir);
+    }
+  }
+
   const textExts = new Set(['.json', '.ts', '.js', '.md', '.yml', '.yaml', '.html', '.css']);
-  // 视为无后缀纯文本的特殊文件名
   const textBasenames = new Set(['_gitignore', '.gitignore', 'README', 'LICENSE']);
 
   const vars: Record<string, string> = {
@@ -192,9 +223,8 @@ async function scaffold(answers: Answers): Promise<void> {
     year: String(new Date().getFullYear()),
   };
 
-  for (const rel of files) {
-    const src = join(templateRoot, rel);
-    // _gitignore -> .gitignore
+  for (const [rel, srcDir] of fileMap) {
+    const src = join(srcDir, rel);
     const relRenamed = rel.split(/[\\/]/).map((seg) => (seg === '_gitignore' ? '.gitignore' : seg)).join('/');
     const dst = join(targetAbs, relRenamed);
 
@@ -212,7 +242,6 @@ async function scaffold(answers: Answers): Promise<void> {
     let content = readFileSync(src, 'utf8');
     content = renderTemplate(content, vars);
 
-    // package.json 特殊处理：workspace:^ → 实际发布版本
     if (base === 'package.json') {
       content = content
         .replace(/"@songloft\/plugin-sdk":\s*"workspace:\^?"/g, `"@songloft/plugin-sdk": "${SDK_VERSION}"`)
@@ -224,6 +253,11 @@ async function scaffold(answers: Answers): Promise<void> {
 
   console.log('');
   console.log(`✅ 已创建 ${answers.targetDir}`);
+
+  if (answers.features.length > 0) {
+    console.log(`   附加功能: ${answers.features.join(', ')}`);
+  }
+
   console.log('');
   console.log('下一步：');
   console.log(`  cd ${answers.targetDir}`);

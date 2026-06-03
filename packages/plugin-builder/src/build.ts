@@ -83,6 +83,12 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     cpSync(staticDir, join(buildDir, 'static'), { recursive: true });
   }
 
+  // [3.0] 拷贝 bin/ 到 build/（如果存在，用于打包可执行文件）
+  const binDir = join(cwd, 'bin');
+  if (existsSync(binDir)) {
+    cpSync(binDir, join(buildDir, 'bin'), { recursive: true });
+  }
+
   // [3.1] 合并打包前端 JS（如果 static/js/app.js 存在）
   const staticJsAppPath = join(buildDir, 'static', 'js', 'app.js');
   if (existsSync(staticJsAppPath)) {

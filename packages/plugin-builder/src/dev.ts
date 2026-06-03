@@ -8,7 +8,7 @@ import type { PluginManifest } from '@songloft/plugin-sdk';
 
 const CONFIG_FILE = '.songloft-dev.json';
 const DEFAULT_HOST = 'http://localhost:58091';
-const WATCH_DIRS = ['src', 'static'];
+const WATCH_DIRS = ['src', 'static', 'bin'];
 const WATCH_FILES = ['plugin.json'];
 const DEBOUNCE_MS = 250;
 
