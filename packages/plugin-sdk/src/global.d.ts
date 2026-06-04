@@ -187,6 +187,41 @@ export interface SongloftJSEnv {
   list(): Promise<string[]>;
 }
 
+// ===== 文件系统（songloft.fs） =====
+
+export interface FsStatResult {
+  size: number;
+  modTime: number;
+  isDir: boolean;
+}
+
+export interface FsDirEntry {
+  name: string;
+  isDir: boolean;
+}
+
+/**
+ * 插件数据目录内的文件读写 API。
+ *
+ * 所有 path 参数为相对路径，根目录为插件数据目录
+ * （`data/jsplugins_data/{entryPath}/`）。
+ * 路径不允许包含 `..`，不允许逃逸出数据目录。
+ * 文件大小上限 10MB。
+ *
+ * 所有方法都返回 Promise；调用方必须 await。
+ */
+export interface SongloftFS {
+  readFile(path: string, options?: { encoding?: 'utf8' | 'base64' }): Promise<string>;
+  writeFile(path: string, data: string, options?: { encoding?: 'utf8' | 'base64' }): Promise<void>;
+  appendFile(path: string, data: string, options?: { encoding?: 'utf8' | 'base64' }): Promise<void>;
+  readdir(path: string): Promise<FsDirEntry[]>;
+  unlink(path: string): Promise<void>;
+  exists(path: string): Promise<boolean>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  stat(path: string): Promise<FsStatResult>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+}
+
 // ===== 外部命令 / 可执行文件管理（songloft.command） =====
 
 export interface CommandExecResult {
@@ -214,7 +249,10 @@ export interface SongloftCommand {
   }): Promise<{ pid: number }>;
   stop(name: string): Promise<void>;
   isRunning(name: string): Promise<boolean>;
-  download(url: string, filename: string): Promise<void>;
+  download(url: string, filename: string, options?: {
+    extract?: 'tgz';
+    extractTarget?: string;
+  }): Promise<void>;
   deleteBin(filename: string): Promise<void>;
   listBin(): Promise<string[]>;
   exists(filename: string): Promise<boolean>;
@@ -229,6 +267,7 @@ export interface Songloft {
   plugin: SongloftPlugin;
   jsenv: SongloftJSEnv;
   command: SongloftCommand;
+  fs: SongloftFS;
 }
 
 // ===== 全局声明 =====

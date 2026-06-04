@@ -24,6 +24,7 @@ const VALID_PERMISSIONS = [
   'inter-plugin',
   'command',
   'jsenv',
+  'fs',
 ];
 
 /**
