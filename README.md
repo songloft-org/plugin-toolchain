@@ -8,18 +8,48 @@
 |---|------|
 | [`@songloft/plugin-sdk`](./packages/plugin-sdk) | 全局类型声明 + 运行时 helper（路由、jsonResponse 等） |
 | [`@songloft/plugin-builder`](./packages/plugin-builder) | CLI：`build` / `validate` / `dev` / `publish`（esbuild + zip 打包 + hash 生成） |
-| [`create-songloft-plugin`](./packages/create-songloft-plugin) | `pnpm create songloft-plugin` 脚手架，从模板生成新插件项目 |
+| [`create-songloft-plugin`](./packages/create-songloft-plugin) | `npx create-songloft-plugin@latest` 脚手架，交互式生成新插件项目 |
 
-## 快速开始（发布后）
+## 快速开始
 
 ```bash
-# 脚手架创建插件
-pnpm create songloft-plugin my-plugin
-cd my-plugin
-pnpm install
-pnpm run build
+# 脚手架创建插件（交互式）
+npx create-songloft-plugin@latest
+# 或使用 pnpm
+pnpm create songloft-plugin
+
+cd <你的插件目录>
+npm install   # 或 pnpm install / yarn install（脚手架会询问包管理器偏好）
+npm run build
 # 产物：dist/<entryPath>.jsplugin.zip —— 到 Songloft 后台上传即可
 ```
+
+脚手架会交互式引导你完成以下配置：
+
+**可选权限**（多选）：
+
+| 权限 | 说明 |
+|------|------|
+| `network` | 网络请求 - fetch API |
+| `storage` | 持久化存储 - storage API |
+| `songs.read` | 读取歌曲列表/元数据 |
+| `songs.write` | 写入/修改歌曲元数据 |
+| `playlists.read` | 读取歌单及歌单中的歌曲 |
+| `playlists.write` | 创建/修改/删除歌单及其歌曲 |
+| `inter-plugin` | 与其他插件通信 |
+| `command` | 执行外部命令/管理可执行文件 |
+| `jsenv` | 创建/执行子 JS 沙箱环境 |
+
+**附加功能模板**（多选，可跳过）：
+
+| 功能 | 说明 |
+|------|------|
+| `static` | 静态页面 (`static/`) — 包含 HTML/CSS/JS 模板和 API 封装库 |
+| `bin` | 可执行文件管理 (`bin/`) — 打包/下载/运行外部程序 |
+
+模板采用叠加层设计：始终包含 `base` 基础模板，选中的附加功能会额外合并对应的文件到项目中。
+
+> 完整的插件开发指南（生命周期、API 参考、安全机制等）见 [JS 插件开发指南](https://github.com/songloft-org/songloft/blob/main/docs/js-plugin-development-guide.md)。
 
 ## 本地开发
 
