@@ -25,6 +25,7 @@ const VALID_PERMISSIONS = [
   'command',
   'jsenv',
   'fs',
+  'websocket',
 ];
 
 /**
