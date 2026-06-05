@@ -431,3 +431,192 @@ pre {
         padding: 20px;
     }
 }
+
+/* ── Tab Bar（多页插件导航） ── */
+.tab-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    display: flex;
+    height: 64px;
+    background: var(--md-surface);
+    z-index: 99;
+    border-top: 1px solid var(--md-outline-variant);
+}
+
+.tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--md-on-surface-variant);
+    font-size: 12px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    position: relative;
+    transition: color .2s;
+    letter-spacing: .4px;
+}
+
+.tab-item .material-symbols-outlined { font-size: 22px; }
+
+.tab-item::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 64px;
+    height: 32px;
+    background: var(--md-primary-container);
+    border-radius: 16px;
+    z-index: -1;
+    transition: transform .2s;
+}
+
+.tab-item.active {
+    color: var(--md-primary);
+}
+
+.tab-item.active::after { transform: translateX(-50%) scaleX(1); }
+
+.tab-item:hover:not(.active) { background: rgba(99,102,241,.06); }
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    padding-top: 72px;
+    padding-bottom: 80px;
+    min-height: 100vh;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Responsive — large screens: Tab Bar → Left Navigation Rail */
+@media (min-width: 1024px) {
+    .tab-bar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        right: auto;
+        width: 80px;
+        height: auto;
+        flex-direction: column;
+        border-top: none;
+        border-right: 1px solid var(--md-outline-variant);
+        padding-top: 72px;
+        padding-bottom: 0;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
+    .tab-item {
+        flex: none;
+        width: 100%;
+        height: auto;
+        padding: 12px 0;
+    }
+
+    .tab-item::after {
+        top: 7px;
+        left: 50%;
+        transform: translateX(-50%) scaleX(0);
+        width: 56px;
+        height: 32px;
+    }
+
+    .tab-item.active::after {
+        transform: translateX(-50%) scaleX(1);
+    }
+
+    .app-bar {
+        left: 80px;
+    }
+
+    .tab-content {
+        margin-left: 80px;
+        padding-bottom: 24px;
+    }
+
+    .main-content {
+        margin-left: 80px;
+    }
+
+    .snackbar {
+        left: calc(50% + 40px);
+        bottom: 24px;
+    }
+}
+
+@media (min-width: 1440px) {
+    .tab-bar { width: 100px; padding-top: 80px; }
+    .app-bar { left: 100px; }
+    .tab-content { margin-left: 100px; }
+    .main-content { margin-left: 100px; }
+    .snackbar { left: calc(50% + 50px); }
+}
+
+/* ── embed 模式：嵌入 App Tab 时的布局 ── */
+html.embed .app-bar {
+    display: none !important;
+}
+html.embed .tab-bar {
+    top: 0 !important;
+    bottom: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    height: 48px !important;
+    flex-direction: row !important;
+    border-top: none !important;
+    border-bottom: 1px solid var(--md-outline-variant) !important;
+    border-right: none !important;
+    padding-bottom: 0 !important;
+    padding-top: 0 !important;
+}
+html.embed .tab-item {
+    flex: 1 !important;
+    width: auto !important;
+    flex-direction: row !important;
+    gap: 8px !important;
+    font-size: 14px !important;
+    padding: 0 16px !important;
+}
+html.embed .tab-item .material-symbols-outlined {
+    font-size: 18px !important;
+}
+html.embed .tab-item::after {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    height: 3px !important;
+    border-radius: 3px 3px 0 0 !important;
+    background: var(--md-primary) !important;
+    transform: scaleX(0) !important;
+}
+html.embed .tab-item.active::after {
+    transform: scaleX(1) !important;
+}
+html.embed .tab-content {
+    padding-top: 56px !important;
+    padding-bottom: 16px !important;
+    margin-left: 0 !important;
+}
+html.embed .main-content {
+    padding-top: 56px !important;
+    margin-left: 0 !important;
+}
+html.embed .snackbar {
+    left: 50% !important;
+    bottom: 24px !important;
+}
