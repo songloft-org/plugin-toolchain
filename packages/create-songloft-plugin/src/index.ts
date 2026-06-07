@@ -35,7 +35,7 @@ const AVAILABLE_PERMISSIONS = [
 ];
 
 const AVAILABLE_FEATURES = [
-  { name: '静态页面 (static/) — 包含 HTML/CSS/JS 模板和 API 封装库', value: 'static' },
+  { name: '静态页面 (static/) — 包含 HTML 模板和入口 JS，公共资源由主程序自动注入', value: 'static' },
   { name: '可执行文件管理 (bin/) — 打包/下载/运行外部程序', value: 'bin' },
 ];
 
