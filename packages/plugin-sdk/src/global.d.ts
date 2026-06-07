@@ -14,6 +14,8 @@ export interface Song {
   url?: string;
   coverPath?: string;
   type: 'local' | 'remote' | 'radio';
+  fingerprint?: string;
+  fingerprint_duration?: number;
 }
 
 /** 歌单对象 */
