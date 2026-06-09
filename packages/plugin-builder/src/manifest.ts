@@ -25,6 +25,9 @@ const VALID_PERMISSIONS = [
   'command',
   'jsenv',
   'fs',
+  'fs:music',
+  'fs:external',
+  'fs.*',
   'websocket',
 ];
 
