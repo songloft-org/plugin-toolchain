@@ -40,6 +40,13 @@ export interface PluginManifest {
   main: string;
   minHostVersion?: string;
   permissions: string[];
+  /**
+   * 无需 JWT 认证的路径前缀列表。
+   * 声明后，匹配的请求路径将绕过全局 AuthMiddleware 直接转发给插件处理。
+   * 插件需自行实现认证逻辑（如 Subsonic 的 u/t/s 参数验证）。
+   * 示例：`["/rest"]` 使 `/api/v1/jsplugin/{entryPath}/rest/*` 无需 JWT。
+   */
+  publicPaths?: string[];
   updateUrl?: string;
   download_url?: string;
   entryHash: string;
@@ -63,11 +70,29 @@ export interface HTTPRequest {
   query: string;
 }
 
+/** serveFile 指令：指示 Go 层直接 serve 文件（绕过 QuickJS string 管道） */
+export interface ServeFileDirective {
+  /** serve 系统内歌曲（需 songs.read 权限） */
+  songId?: number;
+  /**
+   * serve 文件路径。解析规则：
+   * - 不以 "/" 开头 → 相对于插件 data 目录（需 fs 权限）
+   * - 以 "/" 开头 → 绝对路径，需在 fs:external 配置的目录内
+   * - "music://xxx" → 解析为 music_path 下的路径（需 fs:music 权限）
+   */
+  filePath?: string;
+}
+
 /** 插件返回的 HTTP 响应 */
 export interface HTTPResponse {
-  statusCode: number;
+  statusCode?: number;
   headers?: Record<string, string>;
   body?: string | Uint8Array;
+  /**
+   * 指示 Go 层直接 serve 文件（零拷贝，支持 Range 请求和 HTTP 缓存）。
+   * 设置此字段时 body 会被忽略。
+   */
+  serveFile?: ServeFileDirective;
 }
 
 // ===== songloft 全局 API =====
@@ -119,6 +144,12 @@ export interface SongloftPlugin {
   getToken(): Promise<string>;
   /** 获取宿主服务的基础 URL */
   getHostUrl(): Promise<string>;
+  /**
+   * 获取文件的可访问 URL（含 access_token）。
+   * 路径规则同 ServeFileDirective.filePath。
+   * 返回的 URL 可直接用于 <audio src="..."> 等场景。
+   */
+  getFileUrl(filePath: string): Promise<string>;
 }
 
 // ===== 子 JS 环境（songloft.jsenv） =====
