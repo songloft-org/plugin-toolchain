@@ -1,6 +1,6 @@
 {
   "name": "@songloft/plugin-sdk",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "description": "TypeScript SDK for Songloft JS plugin development",
   "type": "module",
   "exports": {
