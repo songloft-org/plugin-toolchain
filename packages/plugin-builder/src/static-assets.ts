@@ -34,8 +34,8 @@ function looksAlreadyHashed(filename: string): boolean {
   const m = HASHED_NAME_RE.exec(filename);
   if (!m) return false;
   const seg = m[2];
-  // 必须同时含字母和数字，避免把 `style-12345678.css` 这种数字版本号误判
-  return /[A-Za-z]/.test(seg) && /\d/.test(seg);
+  // 8+ 位且由 hex 字符组成即视为 hash（含纯数字情况如 67058905）
+  return /^[A-Fa-f0-9]{8,}$/.test(seg) || (/[A-Za-z]/.test(seg) && /\d/.test(seg));
 }
 
 /**
