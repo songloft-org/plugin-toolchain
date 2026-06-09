@@ -47,6 +47,8 @@ export interface PluginManifest {
    * 示例：`["/rest"]` 使 `/api/v1/jsplugin/{entryPath}/rest/*` 无需 JWT。
    */
   publicPaths?: string[];
+  /** 插件图标文件名，相对于 static/ 目录（如 "icon.svg"）。构建时自动回写为带 hash 的文件名。 */
+  icon?: string;
   updateUrl?: string;
   download_url?: string;
   entryHash: string;

@@ -137,9 +137,11 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
   //         可在 plugin.json 中设置 "staticHash": false 关闭（用于前端已用
   //         Vite/Webpack 等工具自管理 hash 的场景）。
   const staticBuildDir = join(buildDir, 'static');
+  let staticRenameMap: Map<string, string> | undefined;
   if (existsSync(staticBuildDir) && manifest.staticHash !== false) {
-    const { renamed } = hashStaticAssets(staticBuildDir);
+    const { renamed, renameMap } = hashStaticAssets(staticBuildDir);
     if (renamed > 0) {
+      staticRenameMap = renameMap;
       console.log(`  🏷️  static assets hashed (${renamed} files)`);
     }
   }
@@ -177,6 +179,13 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     entryHash,
     zipHash,
   };
+  // icon 字段回写：用 hash 后的实际文件名替换原始文件名
+  if (finalManifest.icon && staticRenameMap) {
+    const hashedIcon = staticRenameMap.get(finalManifest.icon);
+    if (hashedIcon) {
+      finalManifest.icon = hashedIcon;
+    }
+  }
   writeFileSync(join(buildDir, 'plugin.json'), JSON.stringify(finalManifest, null, 2));
 
   // [7] 打包为 .jsplugin.zip

@@ -42,7 +42,7 @@ function looksAlreadyHashed(filename: string): boolean {
  * 入口：hash static 目录下的资源并改写引用。
  * staticBuildDir 必须存在；不存在时由调用方判断后再传入。
  */
-export function hashStaticAssets(staticBuildDir: string): { renamed: number } {
+export function hashStaticAssets(staticBuildDir: string): { renamed: number; renameMap: Map<string, string> } {
   const all = walk(staticBuildDir);
   const rel = (p: string) => toPosix(relative(staticBuildDir, p));
 
@@ -90,7 +90,7 @@ export function hashStaticAssets(staticBuildDir: string): { renamed: number } {
     if (rewritten !== html) writeFileSync(file, rewritten);
   }
 
-  return { renamed: renameMap.size };
+  return { renamed: renameMap.size, renameMap };
 }
 
 // --- 内部工具 ---
