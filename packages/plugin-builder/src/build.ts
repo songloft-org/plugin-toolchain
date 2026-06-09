@@ -196,14 +196,7 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
   const zipPath = join(outDir, `${manifest.entryPath}.jsplugin.zip`);
   writeFileSync(zipPath, zipBuffer);
 
-  // [8] 生成远程元数据文件
-  const metaPath = join(outDir, `${manifest.entryPath}.json`);
-  writeFileSync(metaPath, JSON.stringify({
-    version: manifest.version,
-    download_url: `https://github.com/songloft-org/plugins/releases/download/jsplugin-${manifest.entryPath}-${manifest.version}/${manifest.entryPath}.jsplugin.zip`,
-  }, null, 2));
-
-  // [9] 输出报告
+  // [8] 输出报告
   const mainJsGzip = Buffer.byteLength(mainJsContent);
   console.log(`\n✅ Build successful!`);
   console.log(`  📦 ${zipPath} (${(zipBuffer.length / 1024).toFixed(1)} KB)`);
