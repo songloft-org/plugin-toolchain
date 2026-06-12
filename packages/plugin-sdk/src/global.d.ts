@@ -116,10 +116,21 @@ export interface SongloftStorage {
   keys(): Promise<string[]>;
 }
 
+export interface SongDownloadResult {
+  path: string;
+  status: string;
+  error?: string;
+}
+
 export interface SongloftSongs {
   list(options?: { limit?: number; offset?: number }): Promise<Song[]>;
   getById(id: number): Promise<Song | null>;
   search(query: string): Promise<Song[]>;
+  download(songId: number, options?: {
+    targetDir?: string;
+    pathTemplate?: string;
+    embedMetadata?: boolean;
+  }): Promise<SongDownloadResult>;
 }
 
 export interface SongloftPlaylists {
