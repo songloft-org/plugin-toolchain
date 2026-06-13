@@ -127,9 +127,9 @@ export interface SongloftSongs {
   getById(id: number): Promise<Song | null>;
   search(query: string): Promise<Song[]>;
   download(songId: number, options?: {
-    targetDir?: string;
-    pathTemplate?: string;
-    embedMetadata?: boolean;
+    target_dir?: string;
+    path_template?: string;
+    embed_metadata?: boolean;
   }): Promise<SongDownloadResult>;
 }
 
