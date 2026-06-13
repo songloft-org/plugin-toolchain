@@ -304,6 +304,43 @@ export interface SongloftCommand {
   exists(filename: string): Promise<boolean>;
 }
 
+// ===== 播放事件（songloft.events） =====
+
+/** 播放事件中的歌曲信息 */
+export interface PlayEventSong {
+  id: number;
+  title: string;
+  artist: string;
+}
+
+/** 播放事件数据 */
+export interface PlayEvent {
+  type: 'play' | 'finish' | 'skip';
+  song: PlayEventSong;
+  /** 调用来源标识，如 "songloft-player"（官方客户端）、"miot"（小爱音箱插件）等 */
+  source: string;
+  /** Unix 毫秒时间戳 */
+  timestamp: number;
+}
+
+/**
+ * 事件订阅 API。
+ *
+ * 插件通过 `songloft.events.onPlayEvent(fn)` 动态订阅播放事件，
+ * 通过 `songloft.events.offPlayEvent()` 取消订阅。
+ * 可在任意时刻调用（onInit、onHTTPRequest、定时器回调等），
+ * 支持设置页面的开关场景。
+ *
+ * 未订阅的插件不会收到广播。插件休眠后订阅自动清除，
+ * 懒加载恢复时需在 onInit 中重新注册。
+ */
+export interface SongloftEvents {
+  /** 订阅播放事件 */
+  onPlayEvent(handler: (event: PlayEvent) => void | Promise<void>): void;
+  /** 取消订阅播放事件 */
+  offPlayEvent(): void;
+}
+
 export interface Songloft {
   log: SongloftLog;
   storage: SongloftStorage;
@@ -314,6 +351,7 @@ export interface Songloft {
   jsenv: SongloftJSEnv;
   command: SongloftCommand;
   fs: SongloftFS;
+  events: SongloftEvents;
 }
 
 // ===== 全局声明 =====
@@ -332,6 +370,11 @@ declare global {
    * 再把响应序列化为 HTTP 应答。
    */
   function onHTTPRequest(req: HTTPRequest): HTTPResponse | Promise<HTTPResponse>;
+  /**
+   * 播放事件回调（通过 songloft.events.onPlayEvent 注册后生效）。
+   * 客户端播放完一首歌后由后端广播调用。
+   */
+  function onPlayEvent(event: PlayEvent): void | Promise<void>;
 
   // 由 polyfill 注入的标准全局 API（与浏览器/Node 对齐）。
   // fetch 是真异步（Go 侧 goroutine 跑 HTTP，JS 侧通过原生 Promise 等待）。

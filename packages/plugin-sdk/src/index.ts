@@ -313,9 +313,12 @@ export type {
   HTTPResponse,
   PluginManifest,
   Songloft,
+  SongloftEvents,
   SongloftJSEnv,
   SongloftJSEnvCall,
   SongloftJSEnvEvent,
   SongloftJSEnvResult,
   SongloftJSEnvParallelResult,
+  PlayEvent,
+  PlayEventSong,
 } from './global';
