@@ -341,6 +341,20 @@ export interface SongloftEvents {
   offPlayEvent(): void;
 }
 
+/**
+ * 歌词提供者注册（songloft.lyrics）。
+ *
+ * 插件通过 `songloft.lyrics.registerProvider()` 声明自己是歌词提供者，
+ * 之后宿主在歌曲没有歌词时会通过 InvokeHTTP 调用插件的 `/lyric-search` 端点。
+ * 插件需自行实现该 HTTP 路由。
+ */
+export interface SongloftLyrics {
+  /** 注册当前插件为歌词提供者 */
+  registerProvider(): void;
+  /** 取消注册 */
+  unregisterProvider(): void;
+}
+
 export interface Songloft {
   log: SongloftLog;
   storage: SongloftStorage;
@@ -352,6 +366,7 @@ export interface Songloft {
   command: SongloftCommand;
   fs: SongloftFS;
   events: SongloftEvents;
+  lyrics: SongloftLyrics;
 }
 
 // ===== 全局声明 =====
