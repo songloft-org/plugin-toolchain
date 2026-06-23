@@ -122,6 +122,31 @@ export interface SongDownloadResult {
   error?: string;
 }
 
+/** 创建远程歌曲的输入 */
+export interface CreateSongInput {
+  url?: string;
+  title: string;
+  artist?: string;
+  album?: string;
+  coverUrl?: string;
+  duration?: number;
+  sourceData?: string;
+  dedupKey?: string;
+  lyric?: string;
+  lyricSource?: string;
+  lyricRemoteUrl?: string;
+}
+
+/** 更新歌曲的可选字段 */
+export interface UpdateSongFields {
+  title?: string;
+  artist?: string;
+  album?: string;
+  url?: string;
+  coverUrl?: string;
+  duration?: number;
+}
+
 export interface SongloftSongs {
   list(options?: { limit?: number; offset?: number }): Promise<Song[]>;
   getById(id: number): Promise<Song | null>;
@@ -131,6 +156,33 @@ export interface SongloftSongs {
     path_template?: string;
     embed_metadata?: boolean;
   }): Promise<SongDownloadResult>;
+  /** 批量创建远程歌曲（自动关联到当前插件） */
+  create(songs: CreateSongInput[]): Promise<Song[]>;
+  /** 更新歌曲元数据（仅更新传入的字段） */
+  update(id: number, fields: UpdateSongFields): Promise<Song>;
+  /** 删除歌曲（含封面和缓存清理） */
+  delete(id: number): Promise<void>;
+}
+
+/** 创建歌单的输入 */
+export interface CreatePlaylistInput {
+  name: string;
+  type?: 'normal' | 'radio';
+  description?: string;
+  coverUrl?: string;
+}
+
+/** 更新歌单的可选字段 */
+export interface UpdatePlaylistFields {
+  name?: string;
+  description?: string;
+  coverUrl?: string;
+}
+
+/** addSongs 的返回结果 */
+export interface AddSongsResult {
+  added: number;
+  skipped: number;
 }
 
 export interface SongloftPlaylists {
@@ -141,6 +193,20 @@ export interface SongloftPlaylists {
    * 不传 options 时返回最多 100000 条。
    */
   getSongs(playlistId: number, options?: { limit?: number; offset?: number }): Promise<Song[]>;
+  /** 搜索歌单（按名称关键词） */
+  search(query: string, options?: { limit?: number; offset?: number }): Promise<Playlist[]>;
+  /** 创建歌单 */
+  create(playlist: CreatePlaylistInput): Promise<Playlist>;
+  /** 更新歌单（仅更新传入的字段；内置歌单只允许更新封面） */
+  update(id: number, fields: UpdatePlaylistFields): Promise<Playlist>;
+  /** 删除歌单（内置歌单不可删除） */
+  delete(id: number): Promise<void>;
+  /** 批量添加歌曲到歌单（类型不兼容或已存在的歌曲计入 skipped） */
+  addSongs(playlistId: number, songIds: number[]): Promise<AddSongsResult>;
+  /** 批量移除歌单中的歌曲 */
+  removeSongs(playlistId: number, songIds: number[]): Promise<void>;
+  /** 重排序歌单中的歌曲（songIds 长度必须等于歌单内现有歌曲数） */
+  reorder(playlistId: number, songIds: number[]): Promise<void>;
 }
 
 export interface SongloftComm {
