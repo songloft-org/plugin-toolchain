@@ -229,6 +229,8 @@ export interface SongloftPlugin {
    * 返回的 URL 可直接用于 <audio src="..."> 等场景。
    */
   getFileUrl(filePath: string): Promise<string>;
+  /** 获取本机局域网可达的 IPv4 地址列表（排除回环、Docker 虚拟网桥等） */
+  getNetworkAddresses(): Promise<string[]>;
 }
 
 // ===== 子 JS 环境（songloft.jsenv） =====
