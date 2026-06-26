@@ -116,6 +116,13 @@ export interface SongloftStorage {
   keys(): Promise<string[]>;
 }
 
+export interface SongloftPersistentStorage {
+  get(key: string): Promise<unknown | null>;
+  set(key: string, value: unknown): Promise<void>;
+  delete(key: string): Promise<void>;
+  keys(): Promise<string[]>;
+}
+
 export interface SongDownloadResult {
   path: string;
   status: string;
@@ -426,6 +433,7 @@ export interface SongloftLyrics {
 export interface Songloft {
   log: SongloftLog;
   storage: SongloftStorage;
+  persistentStorage: SongloftPersistentStorage;
   songs: SongloftSongs;
   playlists: SongloftPlaylists;
   comm: SongloftComm;
