@@ -89,6 +89,14 @@ export async function runDev(opts: DevOptions): Promise<void> {
     return;
   }
 
+  const frontendDir = join(cwd, 'frontend');
+  if (existsSync(join(frontendDir, 'package.json'))) {
+    console.log('\n🚀 Starting Vite dev server for frontend...');
+    import('node:child_process').then(({ spawn }) => {
+      spawn('npm', ['run', 'dev'], { cwd: frontendDir, stdio: 'inherit' });
+    });
+  }
+
   console.log('\n👀 watching for changes... (Ctrl+C to exit)');
   startWatcher(cwd, () => {
     void runOnce('reload');

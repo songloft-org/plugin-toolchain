@@ -77,6 +77,18 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     }],
   });
 
+  // [2.5] 前端 Vue/Vite 编译（如果存在 frontend/ 目录）
+  const frontendDir = join(cwd, 'frontend');
+  if (existsSync(join(frontendDir, 'package.json'))) {
+    console.log(`  🚀 Detected frontend project, installing & building...`);
+    execFileSync('npm', ['install'], { cwd: frontendDir, stdio: 'inherit' });
+    execFileSync('npm', ['run', 'build'], { cwd: frontendDir, stdio: 'inherit' });
+    // 根据模板配置，产物会被直接输出到 cwd/static。但为了兼容自定义 dist 输出，加一个 fallback 拷贝：
+    if (existsSync(join(frontendDir, 'dist'))) {
+      cpSync(join(frontendDir, 'dist'), join(buildDir, 'static'), { recursive: true });
+    }
+  }
+
   // [3] 拷贝 static/ 到 build/（如果存在）
   const staticDir = join(cwd, 'static');
   if (existsSync(staticDir)) {

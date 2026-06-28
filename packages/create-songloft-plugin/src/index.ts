@@ -47,6 +47,7 @@ interface Answers {
   author: string;
   permissions: string[];
   features: string[];
+  templateType: 'vanilla' | 'vue';
   packageManager: 'pnpm' | 'npm' | 'yarn';
 }
 
@@ -118,6 +119,15 @@ async function prompt(initialTarget?: string): Promise<Answers> {
     choices: AVAILABLE_FEATURES,
   });
 
+  const templateType = (await select({
+    message: '选择前端开发模式',
+    choices: [
+      { name: 'Vanilla JS (传统静态页面)', value: 'vanilla' },
+      { name: 'Vue 3 + Vite (现代化开发体验)', value: 'vue' },
+    ],
+    default: 'vanilla',
+  })) as 'vanilla' | 'vue';
+
   const packageManager = (await select({
     message: '选择包管理器',
     choices: [
@@ -128,16 +138,21 @@ async function prompt(initialTarget?: string): Promise<Answers> {
     default: 'pnpm',
   })) as 'pnpm' | 'npm' | 'yarn';
 
-  return { targetDir, name, entryPath, description, author, permissions, features, packageManager };
+  return { targetDir, name, entryPath, description, author, permissions, features, templateType, packageManager };
 }
 
-function resolveTemplateDirs(features: string[]): string[] {
+function resolveTemplateDirs(templateType: string, features: string[]): string[] {
   const templatesRoot = resolve(__dirname, '..', 'templates');
   const dirs: string[] = [];
 
   const baseDir = join(templatesRoot, 'base');
   if (!existsSync(baseDir)) throw new Error(`模板目录不存在: ${baseDir}`);
   dirs.push(baseDir);
+
+  if (templateType === 'vue') {
+    const vueDir = join(templatesRoot, 'with-vue');
+    if (existsSync(vueDir)) dirs.push(vueDir);
+  }
 
   if (features.includes('static')) {
     const staticDir = join(templatesRoot, 'with-static');
@@ -199,7 +214,7 @@ async function scaffold(answers: Answers): Promise<void> {
     mkdirSync(targetAbs, { recursive: true });
   }
 
-  const templateDirs = resolveTemplateDirs(answers.features);
+  const templateDirs = resolveTemplateDirs(answers.templateType, answers.features);
 
   // 收集所有文件（后者覆盖前者的同名文件）
   const fileMap = new Map<string, string>(); // rel -> srcDir
