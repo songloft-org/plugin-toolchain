@@ -430,6 +430,64 @@ export interface SongloftLyrics {
   unregisterProvider(): void;
 }
 
+// ===== 网络 socket（songloft.net） =====
+
+/** UDP socket 绑定结果 */
+export interface UDPBindResult {
+  socketId: string;
+  localAddr: string;
+}
+
+/** UDP 数据接收事件（Go 侧 readLoop 推送） */
+export interface NetDataEvent {
+  socketId: string;
+  /** base64 编码的原始数据 */
+  data: string;
+  /** 发送方地址 "ip:port" */
+  remoteAddr: string;
+}
+
+/**
+ * 网络 socket API（当前仅 UDP）。
+ *
+ * 典型用途：SSDP 设备发现（DLNA/UPnP）、mDNS、自定义 UDP 协议。
+ * 数据接收采用推送模式：Go 侧 readLoop goroutine 读取 UDP 包后，
+ * 通过 scheduler 消息队列异步推送到 JS 回调。
+ *
+ * 安全限制：
+ * - 每插件最多 8 个 socket
+ * - 插件卸载/休眠时自动关闭所有 socket
+ * - 需要 "net" 权限
+ *
+ * 所有方法都返回 Promise；调用方必须 await。
+ */
+export interface SongloftNet {
+  /**
+   * 创建并绑定 UDP socket。
+   * @param options.address 绑定地址，如 ":0"（随机端口）或 "0.0.0.0:1900"
+   */
+  udpBind(options?: { address?: string }): Promise<UDPBindResult>;
+  /**
+   * 发送 UDP 数据。data 为原始字符串（JS 侧自动 btoa 编码传输）。
+   * @param addr 目标地址 "host:port"，如 "239.255.255.250:1900"
+   */
+  udpSend(socketId: string, data: string, addr: string): Promise<void>;
+  /** 加入 UDP 多播组（自动在所有可用网络接口上加入） */
+  udpJoinMulticast(socketId: string, group: string): Promise<void>;
+  /** 离开 UDP 多播组 */
+  udpLeaveMulticast(socketId: string, group: string): Promise<void>;
+  /** 获取 socket 的本地绑定地址 */
+  udpGetLocalAddr(socketId: string): Promise<{ localAddr: string }>;
+  /** 关闭 UDP socket（自动清理回调） */
+  udpClose(socketId: string): Promise<void>;
+  /**
+   * 注册数据接收回调（推送模式）。
+   * Go 侧 readLoop 收到 UDP 包后自动调用注册的 handler。
+   * event.data 为 base64 编码，使用 atob() 解码为原始字符串。
+   */
+  onData(socketId: string, handler: (event: NetDataEvent) => void | Promise<void>): void;
+}
+
 export interface Songloft {
   log: SongloftLog;
   storage: SongloftStorage;
@@ -443,6 +501,7 @@ export interface Songloft {
   fs: SongloftFS;
   events: SongloftEvents;
   lyrics: SongloftLyrics;
+  net: SongloftNet;
 }
 
 // ===== 全局声明 =====

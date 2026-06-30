@@ -321,4 +321,7 @@ export type {
   SongloftJSEnvParallelResult,
   PlayEvent,
   PlayEventSong,
+  SongloftNet,
+  UDPBindResult,
+  NetDataEvent,
 } from './global';
