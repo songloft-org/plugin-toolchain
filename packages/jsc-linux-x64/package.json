@@ -1,6 +1,6 @@
 {
   "name": "@songloft/jsc-linux-x64",
-  "version": "2.7.1",
+  "version": "2.8.0",
   "description": "QuickJS bytecode compiler for linux x64",
   "main": "index.js",
   "files": [

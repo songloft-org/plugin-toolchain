@@ -1,6 +1,6 @@
 {
   "name": "@songloft/jsc-win32-arm64",
-  "version": "2.7.1",
+  "version": "2.8.0",
   "description": "QuickJS bytecode compiler for win32 arm64",
   "main": "index.js",
   "files": [
