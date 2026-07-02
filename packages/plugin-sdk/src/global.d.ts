@@ -97,6 +97,65 @@ export interface HTTPResponse {
   serveFile?: ServeFileDirective;
 }
 
+// ===== 入站 WebSocket =====
+
+/** 插件收到的 WebSocket upgrade 请求 */
+export interface WebSocketRequest {
+  method: string;
+  path: string;
+  headers: Record<string, string>;
+  query: string;
+  remoteAddr: string;
+}
+
+/** 入站 WebSocket 消息事件 */
+export interface InboundWebSocketMessageEvent {
+  type: 'message';
+  target: InboundWebSocket;
+  data: string | Uint8Array;
+  isBinary: boolean;
+}
+
+/** 入站 WebSocket 关闭事件 */
+export interface InboundWebSocketCloseEvent {
+  type: 'close';
+  target: InboundWebSocket;
+  code: number;
+  reason: string;
+  wasClean: boolean;
+}
+
+/** 入站 WebSocket 错误事件 */
+export interface InboundWebSocketErrorEvent {
+  type: 'error';
+  target: InboundWebSocket;
+  message: string;
+}
+
+/** 由 Songloft 托管的入站 WebSocket 连接 */
+export interface InboundWebSocket {
+  id: string;
+  readyState: 0 | 1 | 2 | 3;
+  readonly CONNECTING: 0;
+  readonly OPEN: 1;
+  readonly CLOSING: 2;
+  readonly CLOSED: 3;
+  onmessage: ((event: InboundWebSocketMessageEvent) => void | Promise<void>) | null;
+  onclose: ((event: InboundWebSocketCloseEvent) => void | Promise<void>) | null;
+  onerror: ((event: InboundWebSocketErrorEvent) => void | Promise<void>) | null;
+  send(data: string | Uint8Array | ArrayBuffer): Promise<void>;
+  close(code?: number, reason?: string): Promise<void>;
+  onMessage(handler: (event: InboundWebSocketMessageEvent) => void | Promise<void>): void;
+  onClose(handler: (event: InboundWebSocketCloseEvent) => void | Promise<void>): void;
+  onError(handler: (event: InboundWebSocketErrorEvent) => void | Promise<void>): void;
+  addEventListener(type: 'message', handler: (event: InboundWebSocketMessageEvent) => void | Promise<void>): void;
+  addEventListener(type: 'close', handler: (event: InboundWebSocketCloseEvent) => void | Promise<void>): void;
+  addEventListener(type: 'error', handler: (event: InboundWebSocketErrorEvent) => void | Promise<void>): void;
+  removeEventListener(type: 'message', handler: (event: InboundWebSocketMessageEvent) => void | Promise<void>): void;
+  removeEventListener(type: 'close', handler: (event: InboundWebSocketCloseEvent) => void | Promise<void>): void;
+  removeEventListener(type: 'error', handler: (event: InboundWebSocketErrorEvent) => void | Promise<void>): void;
+}
+
 // ===== songloft 全局 API =====
 
 export interface SongloftLog {
@@ -520,6 +579,14 @@ declare global {
    * 再把响应序列化为 HTTP 应答。
    */
   function onHTTPRequest(req: HTTPRequest): HTTPResponse | Promise<HTTPResponse>;
+  /**
+   * 插件入站 WebSocket 处理器。
+   *
+   * 当客户端连接 `/api/v1/jsplugin/{entryPath}/...` 并发起 WebSocket upgrade 时调用。
+   * 插件需声明 `"websocket"` 权限。handler 应注册 message/close/error 回调后返回，
+   * 长连接生命周期由宿主托管。
+   */
+  function onWebSocket(req: WebSocketRequest, socket: InboundWebSocket): void | Promise<void>;
   /**
    * 播放事件回调（通过 songloft.events.onPlayEvent 注册后生效）。
    * 客户端播放完一首歌后由后端广播调用。
