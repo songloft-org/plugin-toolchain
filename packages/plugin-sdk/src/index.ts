@@ -208,12 +208,23 @@ export interface FallbackMatch {
   artist?: string;
 }
 
+/**
+ * resolveUrl 的返回值:
+ *   - string: 仅真实 CDN URL(向后兼容)
+ *   - { url, headers }: URL + 主程序代理拉取该 URL 时需携带的自定义请求头
+ *     (如 B站音频要求 `{ Referer: 'https://www.bilibili.com/' }`,否则 403)
+ */
+export type ResolvedMusicUrl =
+  | string
+  | { url: string; headers?: Record<string, string> };
+
 /** music_url handler 配置 */
 export interface MusicUrlHandlerOptions {
   /**
    * 用 source_data 解析真实播放 URL。失败抛错。
+   * 返回 string 或 { url, headers }(headers 会被主程序在代理/下载时应用)。
    */
-  resolveUrl: (sourceData: Record<string, unknown>) => Promise<string>;
+  resolveUrl: (sourceData: Record<string, unknown>) => Promise<ResolvedMusicUrl>;
   /**
    * 可选的"插件内自搜"。当 resolveUrl 失败且 hint.enabled=true 时被调用,
    * 返回最匹配的新 source_data。返回 null 表示放弃。
@@ -241,6 +252,7 @@ export interface MusicUrlHandlerOptions {
  * Response 200:
  *   {
  *     url: string,                          // 真实 CDN URL
+ *     headers?: object,                     // 主程序拉取该 URL 时需携带的自定义头(如 B站 Referer)
  *     source_data?: object,                 // 若 fallback 触发,返回新的 source_data
  *     used_fallback?: boolean
  *   }
@@ -273,9 +285,11 @@ export function createMusicUrlHandler(opts: MusicUrlHandlerOptions): RouteHandle
 
     // 1. 主路径:直接 resolveUrl(source_data)
     try {
-      const url = await opts.resolveUrl(sourceData);
-      if (url) {
-        return jsonResponse({ url });
+      const norm = normalizeMusicUrl(await opts.resolveUrl(sourceData));
+      if (norm.url) {
+        return jsonResponse(
+          norm.headers ? { url: norm.url, headers: norm.headers } : { url: norm.url },
+        );
       }
     } catch {
       // 落入 fallback
@@ -287,13 +301,15 @@ export function createMusicUrlHandler(opts: MusicUrlHandlerOptions): RouteHandle
       try {
         const match = await opts.fallbackSearch(hint);
         if (match && match.source_data) {
-          const url = await opts.resolveUrl(match.source_data);
-          if (url) {
-            return jsonResponse({
-              url,
+          const norm = normalizeMusicUrl(await opts.resolveUrl(match.source_data));
+          if (norm.url) {
+            const resp: Record<string, unknown> = {
+              url: norm.url,
               source_data: match.source_data,
               used_fallback: true,
-            });
+            };
+            if (norm.headers) resp.headers = norm.headers;
+            return jsonResponse(resp);
           }
         }
       } catch {
@@ -303,6 +319,13 @@ export function createMusicUrlHandler(opts: MusicUrlHandlerOptions): RouteHandle
 
     return jsonResponse({ error: 'source_not_available' }, 404);
   };
+}
+
+/** 把 resolveUrl 的返回值归一化为 { url, headers } */
+function normalizeMusicUrl(r: ResolvedMusicUrl): { url: string; headers?: Record<string, string> } {
+  if (typeof r === 'string') return { url: r };
+  if (r && typeof r === 'object') return { url: r.url, headers: r.headers };
+  return { url: '' };
 }
 
 // Re-export types for convenience
