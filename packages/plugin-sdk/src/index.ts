@@ -212,7 +212,7 @@ export interface FallbackMatch {
  * resolveUrl 的返回值:
  *   - string: 仅真实 CDN URL(向后兼容)
  *   - { url, headers }: URL + 主程序代理拉取该 URL 时需携带的自定义请求头
- *     (如 B站音频要求 `{ Referer: 'https://www.bilibili.com/' }`,否则 403)
+ *     (某些 CDN 需要 Referer / User-Agent 等头才能访问,否则返回 403)
  */
 export type ResolvedMusicUrl =
   | string
@@ -252,7 +252,7 @@ export interface MusicUrlHandlerOptions {
  * Response 200:
  *   {
  *     url: string,                          // 真实 CDN URL
- *     headers?: object,                     // 主程序拉取该 URL 时需携带的自定义头(如 B站 Referer)
+ *     headers?: object,                     // 主程序拉取该 URL 时需携带的自定义头(如 Referer / User-Agent)
  *     source_data?: object,                 // 若 fallback 触发,返回新的 source_data
  *     used_fallback?: boolean
  *   }
