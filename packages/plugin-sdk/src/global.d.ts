@@ -3,29 +3,59 @@
 
 // ===== 数据模型 =====
 
-/** 歌曲对象 */
+/**
+ * 歌曲对象（宿主返回值）。字段名与后端 JSON 一致，为 snake_case；
+ * 带 `?` 的字段对应后端 `omitempty`，可能缺省。
+ * 注意：这是运行时桥接返回的形态，与创建/更新的输入类型（camelCase）不同。
+ */
 export interface Song {
   id: number;
+  type: 'local' | 'remote' | 'radio';
   title: string;
   artist: string;
   album: string;
+  year: number;
+  genre: string;
   duration: number;
-  filePath?: string;
-  url?: string;
-  coverPath?: string;
-  type: 'local' | 'remote' | 'radio';
+  file_path: string;
+  url: string;
+  cover_url: string;
+  lyric_remote_url?: string;
+  lyric_url?: string;
+  file_size: number;
+  format: string;
+  bit_rate: number;
+  sample_rate: number;
+  is_live: boolean;
+  plugin_entry_path?: string;
+  source_data?: string;
+  dedup_key?: string;
+  source_url?: string;
+  source_cover_url?: string;
   fingerprint?: string;
   fingerprint_duration?: number;
+  isrc?: string;
+  cue_source_path?: string;
+  cue_track_index?: number;
+  added_at: string;
+  updated_at: string;
+  file_modified_at?: string;
 }
 
-/** 歌单对象 */
+/**
+ * 歌单对象（宿主返回值）。字段名与后端 JSON 一致，为 snake_case。
+ * 注意：这是运行时桥接返回的形态，与创建/更新的输入类型（camelCase）不同。
+ */
 export interface Playlist {
   id: number;
-  name: string;
   type: 'normal' | 'radio';
-  coverPath?: string;
-  coverUrl?: string;
-  songCount: number;
+  name: string;
+  description: string;
+  cover_url: string;
+  labels: string[];
+  song_count: number;
+  created_at: string;
+  updated_at: string;
 }
 
 /** 插件清单（plugin.json） */
