@@ -563,6 +563,33 @@ export interface Songloft {
   net: SongloftNet;
 }
 
+export interface SongloftCryptoBuffer {
+  _hex: string;
+  toString(format?: string): string;
+  length?: number;
+}
+
+export type SongloftCryptoInput = string | SongloftCryptoBuffer;
+
+export interface SongloftCrypto {
+  /** MD5 哈希，输入 UTF-8 字符串，返回 hex 字符串 */
+  md5(str: string): string;
+  /** SHA1 哈希，输入 UTF-8 字符串，返回 hex 字符串 */
+  sha1(str: string): string;
+  /** SHA256 哈希，输入任意二进制 Buffer-like 数据，返回 Buffer-like 结果 */
+  sha256Bytes(buffer: SongloftCryptoInput): SongloftCryptoBuffer;
+  /** RC4 流加密/解密，默认 toString("base64") */
+  rc4(key: SongloftCryptoInput, data: SongloftCryptoInput): SongloftCryptoBuffer;
+  /** AES 加密，支持 CBC/ECB + PKCS7 padding，默认 toString("base64") */
+  aesEncrypt(buffer: SongloftCryptoInput, mode: 'cbc' | 'ecb' | string, key: SongloftCryptoInput, iv?: SongloftCryptoInput): SongloftCryptoBuffer;
+  /** AES 解密，支持 CBC/ECB + PKCS7 unpadding；字符串密文默认按 base64 解析 */
+  aesDecrypt(buffer: SongloftCryptoInput, mode: 'cbc' | 'ecb' | string, key: SongloftCryptoInput, iv?: SongloftCryptoInput): SongloftCryptoBuffer;
+  /** RSA 公钥加密 (PKCS1v15)，默认 toString("base64") */
+  rsaEncrypt(buffer: SongloftCryptoInput, publicKeyPEM: string): SongloftCryptoBuffer;
+  /** 生成随机字节，默认 toString("hex") */
+  randomBytes(size: number): SongloftCryptoBuffer & { length: number };
+}
+
 // ===== 全局声明 =====
 
 declare global {
@@ -601,6 +628,9 @@ declare global {
   function setInterval(fn: () => void, ms: number): number;
   function clearInterval(id: number): void;
 
+  /** QuickJS 运行时注入的轻量 crypto 工具；与 DOM Crypto 接口做声明合并。 */
+  interface Crypto extends SongloftCrypto {}
+
   // ===== Go 桥接函数（由 QuickJS 运行时注入） =====
   // 注意：__go_fetch_sync 已移除；HTTP 请求统一通过 fetch（真异步）。
 
@@ -633,6 +663,9 @@ declare global {
 
   /** AES 加密 (mode: "cbc"|"ecb", PKCS7 padding)，所有参数和返回值均为 hex */
   function __go_crypto_aes_encrypt(dataHex: string, mode: string, keyHex: string, ivHex: string): string;
+
+  /** AES 解密 (mode: "cbc"|"ecb", PKCS7 unpadding)，所有参数和返回值均为 hex */
+  function __go_crypto_aes_decrypt(dataHex: string, mode: string, keyHex: string, ivHex: string): string;
 
   /** RSA 公钥加密 (PKCS1v15)，dataHex 为 hex 数据，keyPEM 为 PEM 格式公钥，返回 hex */
   function __go_crypto_rsa_encrypt(dataHex: string, keyPEM: string): string;
