@@ -619,6 +619,15 @@ declare global {
   /** SHA256 哈希，输入 UTF-8 字符串，返回 hex 字符串 */
   function __go_crypto_sha256(str: string): string;
 
+  /** SHA1 哈希，输入 UTF-8 字符串，返回 hex 字符串 */
+  function __go_crypto_sha1(str: string): string;
+
+  /** SHA256 哈希，输入任意二进制 hex，返回 hex 字符串 */
+  function __go_crypto_sha256_bytes(dataHex: string): string;
+
+  /** RC4 流加密/解密，keyHex/dataHex 输入，返回 hex 字符串 */
+  function __go_crypto_rc4(keyHex: string, dataHex: string): string;
+
   /** 生成随机字节，返回 hex 字符串 */
   function __go_crypto_random_bytes(size: number): string;
 
