@@ -186,6 +186,12 @@ export interface InboundWebSocket {
   removeEventListener(type: 'error', handler: (event: InboundWebSocketErrorEvent) => void | Promise<void>): void;
 }
 
+/** Songloft QuickJS WebSocket polyfill 支持的构造参数 */
+export interface SongloftWebSocketOptions {
+  /** 连接时附加的 HTTP 请求头，用于访问需要鉴权的本地/远端 WebSocket */
+  headers?: Record<string, string>;
+}
+
 // ===== songloft 全局 API =====
 
 export interface SongloftLog {
@@ -541,7 +547,9 @@ export interface NetDataEvent {
  *
  * 典型用途：SSDP 设备发现（DLNA/UPnP）、mDNS、自定义 UDP 协议。
  * 数据接收采用推送模式：Go 侧 readLoop goroutine 读取 UDP 包后，
- * 通过 scheduler 消息队列异步推送到 JS 回调。
+ * 通过 runtime host event 队列异步推送到 JS 回调。回调会在当前
+ * JS 事件循环中被分发，因此 HTTP handler 正在 await setTimeout/fetch
+ * 时也可以收到 UDP 数据。
  *
  * 安全限制：
  * - 每插件最多 8 个 socket
@@ -571,7 +579,8 @@ export interface SongloftNet {
   udpClose(socketId: string): Promise<void>;
   /**
    * 注册数据接收回调（推送模式）。
-   * Go 侧 readLoop 收到 UDP 包后自动调用注册的 handler。
+   * Go 侧 readLoop 收到 UDP 包后自动调用注册的 handler；handler 的
+   * Promise 不会阻塞宿主继续分发其他事件，异步错误会写入插件日志。
    * event.data 为 base64 编码，使用 atob() 解码为原始字符串。
    */
   onData(socketId: string, handler: (event: NetDataEvent) => void | Promise<void>): void;
@@ -641,7 +650,8 @@ declare global {
    *
    * 当客户端连接 `/api/v1/jsplugin/{entryPath}/...` 并发起 WebSocket upgrade 时调用。
    * 插件需声明 `"websocket"` 权限。handler 应注册 message/close/error 回调后返回，
-   * 长连接生命周期由宿主托管。
+   * 长连接生命周期由宿主托管。message/close 回调通过 runtime host event 队列分发，
+   * 可以在同一插件的其他 async handler await 期间继续到达。
    */
   function onWebSocket(req: WebSocketRequest, socket: InboundWebSocket): void | Promise<void>;
   /**

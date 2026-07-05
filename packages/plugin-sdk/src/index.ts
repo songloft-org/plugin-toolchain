@@ -344,6 +344,7 @@ export type {
   SongloftJSEnvParallelResult,
   PlayEvent,
   PlayEventSong,
+  SongloftWebSocketOptions,
   SongloftNet,
   UDPBindResult,
   NetDataEvent,
