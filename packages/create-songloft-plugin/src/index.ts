@@ -25,6 +25,7 @@ const BUILDER_VERSION = '^2.9.3';
 
 const AVAILABLE_PERMISSIONS = [
   { name: 'storage (持久化存储 - storage API)', value: 'storage' },
+  { name: 'persistent-storage (卸载后保留的持久化存储)', value: 'persistent-storage' },
   { name: 'songs.read (读取歌曲列表/元数据)', value: 'songs.read' },
   { name: 'songs.write (写入/修改歌曲元数据)', value: 'songs.write' },
   { name: 'playlists.read (读取歌单及歌单中的歌曲)', value: 'playlists.read' },
@@ -32,6 +33,11 @@ const AVAILABLE_PERMISSIONS = [
   { name: 'inter-plugin (与其他插件通信)', value: 'inter-plugin' },
   { name: 'command (执行外部命令/管理可执行文件)', value: 'command' },
   { name: 'jsenv (创建/执行子 JS 沙箱环境)', value: 'jsenv' },
+  { name: 'fs (插件数据目录文件读写)', value: 'fs' },
+  { name: 'fs:music (访问 music_path 音乐目录)', value: 'fs:music' },
+  { name: 'fs:external (访问管理员配置的外部目录)', value: 'fs:external' },
+  { name: 'websocket (处理插件 WebSocket 连接)', value: 'websocket' },
+  { name: 'net (UDP socket / SSDP / DLNA 发现)', value: 'net' },
 ];
 
 const AVAILABLE_FEATURES = [

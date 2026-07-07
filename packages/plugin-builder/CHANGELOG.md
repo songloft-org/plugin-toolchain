@@ -1,5 +1,11 @@
 # @songloft/plugin-builder
 
+## Unreleased
+
+### Patch Changes
+
+- 修复：`VALID_PERMISSIONS` 补齐后端已支持的 `net` 与 `persistent-storage` 权限，避免声明 UDP socket 权限的插件在 build/validate 阶段被拒。
+
 ## 0.4.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # create-songloft-plugin
 
+## Unreleased
+
+### Patch Changes
+
+- 修复：权限选择列表补齐后端已支持的 `persistent-storage`、`fs*`、`websocket`、`net` 等能力，避免新建插件漏选 UDP socket 权限。
+
 ## 0.4.1
 
 ### Patch Changes

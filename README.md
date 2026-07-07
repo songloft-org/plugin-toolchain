@@ -30,8 +30,8 @@ npm run build
 
 | 权限 | 说明 |
 |------|------|
-| `network` | 网络请求 - fetch API |
 | `storage` | 持久化存储 - storage API |
+| `persistent-storage` | 卸载后保留的持久化存储 |
 | `songs.read` | 读取歌曲列表/元数据 |
 | `songs.write` | 写入/修改歌曲元数据 |
 | `playlists.read` | 读取歌单及歌单中的歌曲 |
@@ -39,6 +39,11 @@ npm run build
 | `inter-plugin` | 与其他插件通信 |
 | `command` | 执行外部命令/管理可执行文件 |
 | `jsenv` | 创建/执行子 JS 沙箱环境 |
+| `fs` | 插件数据目录内文件读写 |
+| `fs:music` | 访问 music_path 音乐目录 |
+| `fs:external` | 访问管理员配置的外部目录 |
+| `websocket` | 处理插件 WebSocket 连接 |
+| `net` | UDP socket / SSDP / DLNA 发现 |
 
 **附加功能模板**（多选，可跳过）：
 
