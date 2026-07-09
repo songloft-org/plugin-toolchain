@@ -224,6 +224,29 @@ export interface SongDownloadResult {
   error?: string;
 }
 
+/** 目录整理的单项输入。target_path 为相对 music_path 的路径（含目录和文件名）。 */
+export interface OrganizeItem {
+  id: number;
+  target_path: string;
+}
+
+/** 目录整理（execute）的单项结果。status: ok | skip | error（CUE 歌曲为 skip）。 */
+export interface OrganizeResult {
+  id: number;
+  status: string;
+  file_path?: string;
+  error?: string;
+}
+
+/** 目录整理预览（dry-run）的单项结果。status: ok | conflict | skip | error。 */
+export interface OrganizePreviewResult {
+  id: number;
+  old_path?: string;
+  new_path?: string;
+  status: string;
+  error?: string;
+}
+
 /** 创建远程歌曲的输入 */
 export interface CreateSongInput {
   url?: string;
@@ -264,6 +287,10 @@ export interface SongloftSongs {
   update(id: number, fields: UpdateSongFields): Promise<Song>;
   /** 删除歌曲（含封面和缓存清理） */
   delete(id: number): Promise<void>;
+  /** 预览目录整理（dry-run，不落盘；status: ok|conflict|skip|error，CUE 歌曲为 skip；需 songs.read 权限） */
+  organizePreview(items: OrganizeItem[]): Promise<OrganizePreviewResult[]>;
+  /** 执行目录整理（移动/重命名本地文件，需 songs.write 权限；CUE 跳过，同名冲突报错不覆盖） */
+  organize(items: OrganizeItem[]): Promise<OrganizeResult[]>;
 }
 
 /** 创建歌单的输入 */
