@@ -569,17 +569,57 @@ export interface NetDataEvent {
   remoteAddr: string;
 }
 
+/** tcpConnect 的可选参数 */
+export interface TCPConnectOptions {
+  /** 连接超时（毫秒），默认 10000，上限 60000 */
+  timeout?: number;
+}
+
 /**
- * 网络 socket API（当前仅 UDP）。
+ * 出站 TCP 连接句柄，由 {@link SongloftNet.tcpConnect} 返回。
  *
- * 典型用途：SSDP 设备发现（DLNA/UPnP）、mDNS、自定义 UDP 协议。
- * 数据接收采用推送模式：Go 侧 readLoop goroutine 读取 UDP 包后，
+ * 数据接收复用 UDP 的推送模式：Go 侧 readLoop goroutine 读到数据后，
+ * 通过 runtime host event 队列异步推送到 onData 回调。
+ *
+ * 编码（与 UDP 一致，二进制安全）：send 传原始字符串（SDK 内部 btoa），
+ * onData 收到 base64 字符串，需 atob 解码。TCP 是字节流，一次读取可能在
+ * 多字节 UTF-8 字符中间截断——务必累积 atob 后的原始字节、跨 chunk 拼接
+ * 后再按需 UTF-8 解码，切勿对单个 chunk 直接当完整文本处理。
+ */
+export interface TCPSocket {
+  /** socket 唯一 ID */
+  socketId: string;
+  /** 本地地址 "ip:port" */
+  localAddr: string;
+  /** 远端地址 "ip:port" */
+  remoteAddr: string;
+  /**
+   * 发送数据。data 为字节串（每字符码点 0-255，SDK 内部 btoa 编码，同 UDP）；
+   * 发送含非 ASCII 的 UTF-8 文本请先转字节串：`unescape(encodeURIComponent(text))`。
+   * socket 已关闭时抛错。
+   */
+  send(data: string): Promise<void>;
+  /** 注册数据接收回调（推送模式）。data 为 base64 编码的原始字节，用 atob() 解码。 */
+  onData(handler: (data: string) => void | Promise<void>): void;
+  /** 注册连接关闭回调（对端关闭或读错误时触发，主动 close() 不触发）。 */
+  onClose(handler: () => void | Promise<void>): void;
+  /** 主动关闭连接（幂等，自动清理回调）。 */
+  close(): Promise<void>;
+}
+
+/**
+ * 网络 socket API（UDP + TCP）。
+ *
+ * UDP 典型用途：SSDP 设备发现（DLNA/UPnP）、mDNS、自定义 UDP 协议。
+ * TCP 典型用途：控制本机守护进程（如 MPD 6600 端口的 idle 事件推送）。
+ * 数据接收采用推送模式：Go 侧 readLoop goroutine 读取数据后，
  * 通过 runtime host event 队列异步推送到 JS 回调。回调会在当前
  * JS 事件循环中被分发，因此 HTTP handler 正在 await setTimeout/fetch
- * 时也可以收到 UDP 数据。
+ * 时也可以收到数据。
  *
  * 安全限制：
- * - 每插件最多 8 个 socket
+ * - 每插件最多 8 个 socket（UDP 与 TCP 各自独立计数）
+ * - TCP 仅允许连接私有 / 回环 / 链路本地地址（防 SSRF）
  * - 插件卸载/休眠时自动关闭所有 socket
  * - 需要 "net" 权限
  *
@@ -611,6 +651,28 @@ export interface SongloftNet {
    * event.data 为 base64 编码，使用 atob() 解码为原始字符串。
    */
   onData(socketId: string, handler: (event: NetDataEvent) => void | Promise<void>): void;
+  /**
+   * 建立出站 TCP 连接，返回带 send/onData/onClose/close 的 socket 句柄。
+   * 仅允许连接私有 / 回环 / 链路本地地址。
+   *
+   * MPD idle 典型用法（onData 收到 base64，累积字节后按行解码）：
+   * ```ts
+   * let buf = "";
+   * const sock = await songloft.net.tcpConnect("127.0.0.1", 6600, { timeout: 5000 });
+   * sock.onData((b64) => {
+   *   buf += atob(b64);                 // 累积原始字节，避免跨 chunk 截断
+   *   let i;
+   *   while ((i = buf.indexOf("\n")) >= 0) {
+   *     const line = decodeURIComponent(escape(buf.slice(0, i))); // 字节 → UTF-8 文本
+   *     buf = buf.slice(i + 1);
+   *     // ...解析 MPD key: value 行...
+   *   }
+   * });
+   * sock.onClose(() => { ...重连... });
+   * await sock.send("idle player mixer\n");
+   * ```
+   */
+  tcpConnect(host: string, port: number, options?: TCPConnectOptions): Promise<TCPSocket>;
 }
 
 export interface Songloft {
