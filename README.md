@@ -6,9 +6,12 @@
 
 | 包 | 说明 |
 |---|------|
-| [`@songloft/plugin-sdk`](./packages/plugin-sdk) | 全局类型声明 + 运行时 helper（路由、jsonResponse 等） |
+| [`@songloft/plugin-sdk`](./packages/plugin-sdk) | **服务端** SDK：全局类型声明 + 运行时 helper（路由、jsonResponse 等），面向 QuickJS 运行时 |
+| [`@songloft/client-sdk`](./packages/client-sdk) | **客户端** SDK：让 webview 插件页调用 Flutter 宿主能力（改写正在播放队列、播放控制等） |
 | [`@songloft/plugin-builder`](./packages/plugin-builder) | CLI：`build` / `validate` / `dev` / `publish`（esbuild + zip 打包 + hash 生成） |
 | [`create-songloft-plugin`](./packages/create-songloft-plugin) | `npx create-songloft-plugin@latest` 脚手架，交互式生成新插件项目 |
+
+> `@songloft/plugin-sdk` 跑在**后端 QuickJS 运行时**（`songloft.*` 全局）；`@songloft/client-sdk` 跑在**客户端 webview 页面**（`window.SongloftPlugin.*`）。用途不同，按需分别引入。
 
 ## 快速开始
 

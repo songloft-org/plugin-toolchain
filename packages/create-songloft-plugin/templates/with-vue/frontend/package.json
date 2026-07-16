@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@songloft/client-sdk": "workspace:^",
     "vue": "^3.5.13",
     "pinia": "^2.3.1"
   },

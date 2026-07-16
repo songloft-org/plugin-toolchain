@@ -1,0 +1,49 @@
+{
+  "name": "@songloft/client-sdk",
+  "version": "2.12.2",
+  "description": "Client SDK for Songloft webview plugin pages — call Flutter host APIs (player queue, etc.)",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "echo \"no tests yet\" && exit 0",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  },
+  "keywords": [
+    "songloft",
+    "plugin",
+    "client",
+    "sdk",
+    "webview"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/songloft-org/plugin-toolchain.git",
+    "directory": "packages/client-sdk"
+  },
+  "homepage": "https://github.com/songloft-org/plugin-toolchain/tree/main/packages/client-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/songloft-org/plugin-toolchain/issues"
+  },
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "access": "public"
+  }
+}

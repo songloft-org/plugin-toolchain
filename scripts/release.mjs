@@ -26,6 +26,7 @@ const ROOT = resolve(__dirname, '..');
 
 const PKGS = [
   'packages/plugin-sdk/package.json',
+  'packages/client-sdk/package.json',
   'packages/plugin-builder/package.json',
   'packages/create-songloft-plugin/package.json',
 ];
@@ -142,6 +143,7 @@ if (existingTags.includes(tag)) {
 console.log('');
 console.log(`📦 plugin-toolchain release: ${current} → ${next}  (tag: ${tag})`);
 console.log(`   - @songloft/plugin-sdk`);
+console.log(`   - @songloft/client-sdk`);
 console.log(`   - @songloft/plugin-builder`);
 console.log(`   - create-songloft-plugin`);
 console.log(`   - @songloft/jsc`);
@@ -175,16 +177,18 @@ for (const p of allPkgs) {
 const idxAbs = resolve(ROOT, SCAFFOLD_INDEX);
 let idxSrc = readFileSync(idxAbs, 'utf8');
 const sdkRe = /const SDK_VERSION = '\^[^']+';/;
+const clientSdkRe = /const CLIENT_SDK_VERSION = '\^[^']+';/;
 const builderRe = /const BUILDER_VERSION = '\^[^']+';/;
-if (!sdkRe.test(idxSrc) || !builderRe.test(idxSrc)) {
-  console.error(`❌ 在 ${SCAFFOLD_INDEX} 中找不到 SDK_VERSION/BUILDER_VERSION 常量，发版前请人工同步。`);
+if (!sdkRe.test(idxSrc) || !clientSdkRe.test(idxSrc) || !builderRe.test(idxSrc)) {
+  console.error(`❌ 在 ${SCAFFOLD_INDEX} 中找不到 SDK_VERSION/CLIENT_SDK_VERSION/BUILDER_VERSION 常量，发版前请人工同步。`);
   process.exit(1);
 }
 idxSrc = idxSrc
   .replace(sdkRe, `const SDK_VERSION = '^${next}';`)
+  .replace(clientSdkRe, `const CLIENT_SDK_VERSION = '^${next}';`)
   .replace(builderRe, `const BUILDER_VERSION = '^${next}';`);
 if (DRY) {
-  console.log(`[dry-run] update ${SCAFFOLD_INDEX}: SDK_VERSION/BUILDER_VERSION → ^${next}`);
+  console.log(`[dry-run] update ${SCAFFOLD_INDEX}: SDK_VERSION/CLIENT_SDK_VERSION/BUILDER_VERSION → ^${next}`);
 } else {
   writeFileSync(idxAbs, idxSrc, 'utf8');
 }

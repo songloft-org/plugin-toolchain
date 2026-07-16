@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@songloft/plugin-sdk": "workspace:^",
+    "@songloft/client-sdk": "workspace:^",
     "@songloft/plugin-builder": "workspace:^",
     "typescript": "^5.7.0"
   }

@@ -21,6 +21,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const SDK_VERSION = '^2.12.2';
+const CLIENT_SDK_VERSION = '^2.12.2';
 const BUILDER_VERSION = '^2.12.2';
 
 const AVAILABLE_PERMISSIONS = [
@@ -266,6 +267,7 @@ async function scaffold(answers: Answers): Promise<void> {
     if (base === 'package.json') {
       content = content
         .replace(/"@songloft\/plugin-sdk":\s*"workspace:\^?"/g, `"@songloft/plugin-sdk": "${SDK_VERSION}"`)
+        .replace(/"@songloft\/client-sdk":\s*"workspace:\^?"/g, `"@songloft/client-sdk": "${CLIENT_SDK_VERSION}"`)
         .replace(/"@songloft\/plugin-builder":\s*"workspace:\^?"/g, `"@songloft/plugin-builder": "${BUILDER_VERSION}"`);
     }
 

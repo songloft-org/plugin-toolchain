@@ -109,7 +109,7 @@ jobs:
           VERSION="${TAG#v}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          for pkg in plugin-sdk plugin-builder create-songloft-plugin jsc; do
+          for pkg in plugin-sdk client-sdk plugin-builder create-songloft-plugin jsc; do
             PKG_VER=$(node -p "require('./packages/$pkg/package.json').version")
             if [ "$PKG_VER" != "$VERSION" ]; then
               echo "❌ packages/$pkg/package.json version=$PKG_VER does not match tag=$VERSION"
@@ -149,8 +149,9 @@ jobs:
             npm publish --access public --provenance || echo "⚠️ $pkg publish failed (may already exist)"
             cd ../..
           done
-          # 2. Publish remaining packages (plugin-sdk, plugin-builder, create-songloft-plugin, jsc)
+          # 2. Publish remaining packages (plugin-sdk, client-sdk, plugin-builder, create-songloft-plugin, jsc)
           pnpm --filter "./packages/plugin-sdk" publish --access public --no-git-checks
+          pnpm --filter "./packages/client-sdk" publish --access public --no-git-checks
           pnpm --filter "./packages/plugin-builder" publish --access public --no-git-checks
           pnpm --filter "./packages/create-songloft-plugin" publish --access public --no-git-checks
           pnpm --filter "./packages/jsc" publish --access public --no-git-checks
@@ -182,6 +183,7 @@ jobs:
             echo
             VER="${TAG#v}"
             echo "- \`@songloft/plugin-sdk@${VER}\`"
+            echo "- \`@songloft/client-sdk@${VER}\`"
             echo "- \`@songloft/plugin-builder@${VER}\`"
             echo "- \`create-songloft-plugin@${VER}\`"
             echo "- \`@songloft/jsc@${VER}\`"
