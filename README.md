@@ -26,6 +26,11 @@ npm run build
 
 脚手架会交互式引导你完成以下配置：
 
+**前端开发模式**：
+
+- `Vanilla JS`: 传统静态页面，原生 HTML/JS 开发，极简、无编译负担
+- `Vue 3 + Vite`: 现代化前端栈，内置 Vue 3 与 Pinia，支持 Vite 代理调试与 HMR，自带 WebView 样式兼容与静态路由重写机制
+
 **可选权限**（多选）：
 
 | 权限 | 说明 |
@@ -52,7 +57,7 @@ npm run build
 | `static` | 静态页面 (`static/`) — 包含 HTML 模板和入口 JS；公共资源（CSS/字体/API 工具库）由主程序自动注入 |
 | `bin` | 可执行文件管理 (`bin/`) — 打包/下载/运行外部程序 |
 
-模板采用叠加层设计：始终包含 `base` 基础模板，选中的附加功能会额外合并对应的文件到项目中。
+模板采用层叠合并设计：始终以 `base` 为基础骨架，再根据你选择的**前端模式**（Vanilla / Vue）以及选中的**附加功能**，智能组合出对应的初始化工程代码。
 
 > 完整的插件开发指南（生命周期、API 参考、安全机制等）见 [JS 插件开发指南](https://github.com/songloft-org/songloft/blob/main/docs/js-plugin-development-guide.md)。
 
