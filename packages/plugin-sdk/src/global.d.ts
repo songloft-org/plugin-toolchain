@@ -280,6 +280,11 @@ export interface SongloftSongs {
     target_dir?: string;
     path_template?: string;
     embed_metadata?: boolean;
+    /** 目标音频格式（mp3/m4a/ogg/flac/wav）；省略=保留源格式不转码。
+     *  典型用途：将下载源产出的 .mov 等视频容器转成标准音频容器以便刮削。需宿主支持 ffmpeg。 */
+    format?: string;
+    /** 目标码率（'128'/'192'/'320'）；省略=默认最高质量。format 省略时忽略。 */
+    quality?: string;
   }): Promise<SongDownloadResult>;
   /** 批量创建远程歌曲（自动关联到当前插件） */
   create(songs: CreateSongInput[]): Promise<Song[]>;
