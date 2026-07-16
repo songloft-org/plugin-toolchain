@@ -90,15 +90,22 @@ export async function runDev(opts: DevOptions): Promise<void> {
   }
 
   const frontendDir = join(cwd, 'frontend');
-  if (existsSync(join(frontendDir, 'package.json'))) {
+  const hasFrontend = existsSync(join(frontendDir, 'package.json'));
+  if (hasFrontend) {
     console.log('\n🚀 Starting Vite dev server for frontend...');
-    import('node:child_process').then(({ spawn }) => {
-      spawn('npm', ['run', 'dev'], { cwd: frontendDir, stdio: 'inherit' });
+    const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+    void import('node:child_process').then(({ spawn }) => {
+      spawn(npm, ['run', 'dev'], { cwd: frontendDir, stdio: 'inherit' });
     });
   }
 
+  // 存在 frontend 时，static/ 是 vite build 的产物（buildPlugin 会写入它）。
+  // 若继续 watch static，rebuild 写产物会再次触发 rebuild，陷入死循环——故排除。
+  // 前端源码由上面的 vite dev server 负责 HMR，插件逻辑改动仍走 src/ 触发重建上传。
+  const watchDirs = hasFrontend ? WATCH_DIRS.filter((d) => d !== 'static') : WATCH_DIRS;
+
   console.log('\n👀 watching for changes... (Ctrl+C to exit)');
-  startWatcher(cwd, () => {
+  startWatcher(cwd, watchDirs, () => {
     void runOnce('reload');
   });
 
@@ -304,7 +311,7 @@ async function safeText(resp: Response): Promise<string> {
 
 // ============ watcher ============
 
-function startWatcher(cwd: string, onChange: () => void): void {
+function startWatcher(cwd: string, watchDirs: string[], onChange: () => void): void {
   let timer: ReturnType<typeof setTimeout> | null = null;
   const debounced = () => {
     if (timer) clearTimeout(timer);
@@ -314,7 +321,7 @@ function startWatcher(cwd: string, onChange: () => void): void {
     }, DEBOUNCE_MS);
   };
 
-  for (const dir of WATCH_DIRS) {
+  for (const dir of watchDirs) {
     const path = join(cwd, dir);
     if (!existsSync(path)) continue;
     try {

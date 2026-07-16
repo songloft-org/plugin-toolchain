@@ -11,6 +11,9 @@ import { computeEntryHash, computeCanonicalZipHash, sha256Hex } from './hash.js'
 import { hashStaticAssets } from './static-assets.js';
 import type { PluginManifest } from '@songloft/plugin-sdk';
 
+// Windows 下 npm 是 npm.cmd，execFileSync/spawn 不走 shell，直接 'npm' 会 ENOENT
+const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+
 export interface BuildOptions {
   cwd: string;
   outDir?: string;
@@ -80,9 +83,13 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
   // [2.5] 前端 Vue/Vite 编译（如果存在 frontend/ 目录）
   const frontendDir = join(cwd, 'frontend');
   if (existsSync(join(frontendDir, 'package.json'))) {
-    console.log(`  🚀 Detected frontend project, installing & building...`);
-    execFileSync('npm', ['install'], { cwd: frontendDir, stdio: 'inherit' });
-    execFileSync('npm', ['run', 'build'], { cwd: frontendDir, stdio: 'inherit' });
+    // 仅在依赖缺失时安装：dev 模式每次热重载都会走到这里，无脑 npm install 会拖慢重建
+    if (!existsSync(join(frontendDir, 'node_modules'))) {
+      console.log(`  📦 Installing frontend dependencies...`);
+      execFileSync(NPM, ['install'], { cwd: frontendDir, stdio: 'inherit' });
+    }
+    console.log(`  🚀 Building frontend project...`);
+    execFileSync(NPM, ['run', 'build'], { cwd: frontendDir, stdio: 'inherit' });
     // 根据模板配置，产物会被直接输出到 cwd/static。但为了兼容自定义 dist 输出，加一个 fallback 拷贝：
     if (existsSync(join(frontendDir, 'dist'))) {
       cpSync(join(frontendDir, 'dist'), join(buildDir, 'static'), { recursive: true });
