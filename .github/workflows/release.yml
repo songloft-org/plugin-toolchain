@@ -94,7 +94,9 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Ensure npm supports Trusted Publishing (OIDC)
-        run: npm install -g npm@latest
+        # 钉 npm@11(支持 OIDC Trusted Publishing 且兼容 Node 20.17+）；
+        # npm@latest(12.x) 要求 Node ≥22，与本 workflow 的 Node 20 冲突（EBADENGINE）。
+        run: npm install -g npm@11
 
       - name: Build all packages
         run: pnpm --filter "./packages/*" build
