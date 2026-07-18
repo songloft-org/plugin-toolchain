@@ -7,8 +7,8 @@ Songloft **客户端 SDK**：让「在 Songloft Flutter 客户端 webview 中打
 ## 适用范围
 
 - ✅ **Songloft Flutter 客户端**（Android / iOS / macOS / Windows / Linux）的 webview 中打开的插件页面
-- ✅ **Web 端「Tab 内嵌插件页」**（宿主 iframe，走 postMessage 桥接）
-- ❌ **Web 端「全屏插件页」**（在新浏览器标签独立打开，无宿主父窗口）—— `isClient()` 返回 `false`
+- ✅ **Web 端插件页**（Tab 内嵌页与首页/全屏页均在宿主 iframe 内打开，走 postMessage 桥接）
+- ❌ 用户通过「在浏览器中打开」将插件页在**独立新标签**打开时（无宿主父窗口）—— `isClient()` 返回 `false`
 - ❌ 服务端 QuickJS 运行时（用 `@songloft/plugin-sdk`）
 
 > 无论走哪条链路，调用前都请用 `isClient()` / `host.isAvailable()` 先检测——不可用时调用会抛错。
