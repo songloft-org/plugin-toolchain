@@ -1,6 +1,6 @@
 {
   "name": "@songloft/client-sdk",
-  "version": "2.12.3",
+  "version": "2.13.0",
   "description": "Client SDK for Songloft webview plugin pages — call Flutter host APIs (player queue, etc.)",
   "type": "module",
   "exports": {
