@@ -557,6 +557,20 @@ export interface SongloftLyrics {
   unregisterProvider(): void;
 }
 
+/**
+ * 封面提供者注册（songloft.covers）。
+ *
+ * 插件通过 `songloft.covers.registerProvider()` 声明自己是封面提供者，
+ * 之后宿主在歌曲没有封面时会通过 InvokeHTTP 调用插件的 `/cover-search` 端点。
+ * 插件需自行实现该 HTTP 路由，返回 JSON `{"cover_url": "https://..."}`.
+ */
+export interface SongloftCovers {
+  /** 注册当前插件为封面提供者 */
+  registerProvider(): void;
+  /** 取消注册 */
+  unregisterProvider(): void;
+}
+
 // ===== 网络 socket（songloft.net） =====
 
 /** UDP socket 绑定结果 */
@@ -693,6 +707,7 @@ export interface Songloft {
   fs: SongloftFS;
   events: SongloftEvents;
   lyrics: SongloftLyrics;
+  covers: SongloftCovers;
   net: SongloftNet;
 }
 
