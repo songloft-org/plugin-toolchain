@@ -69,6 +69,13 @@ export interface PluginManifest {
   entryPath: string;
   main: string;
   minHostVersion?: string;
+  /**
+   * 客户端渲染插件 HTML 页面所用的引擎。
+   * - `"webview"`：系统 WebView（宿主默认）
+   * - `"webf"`：WebF（Flutter 原生渲染 HTML/CSS，与宿主 UI 同一渲染管线）
+   * 缺省或空串等同 `"webview"`。宿主不支持声明的引擎时会回退到 WebView。
+   */
+  renderEngine?: 'webview' | 'webf';
   permissions: string[];
   /**
    * 无需 JWT 认证的路径前缀列表。

@@ -10,6 +10,9 @@ export interface ManifestValidationError {
 }
 
 const ENTRY_PATH_REGEX = /^[a-z][a-z0-9-]*$/;
+// 渲染引擎白名单，需与后端 internal/jsplugin 的校验保持一致。
+// 可选字段：缺省或空串 = webview（宿主默认）。
+const VALID_RENDER_ENGINES = ['webview', 'webf'];
 const SEMVER_REGEX = /^\d+\.\d+\.\d+/;
 // 权限白名单，需与后端 internal/jsplugin/permissions.go 的 AllPermissions 保持一致。
 // songs.* / playlists.* / fs.* 为声明层的通配符糖（一把梭）。
@@ -58,6 +61,14 @@ export function validateManifest(m: PluginManifest): ManifestValidationError[] {
   }
   if (!m.main || (!m.main.endsWith('.js') && !m.main.endsWith('.jsc'))) {
     errors.push({ field: 'main', message: 'main must end with .js or .jsc' });
+  }
+  // renderEngine 可选：未声明或空串走宿主默认（webview），仅校验显式给出的非法值
+  const renderEngine = m.renderEngine as string | undefined;
+  if (renderEngine !== undefined && renderEngine !== '' && !VALID_RENDER_ENGINES.includes(renderEngine)) {
+    errors.push({
+      field: 'renderEngine',
+      message: `renderEngine must be one of ${VALID_RENDER_ENGINES.join(' | ')} (got: ${renderEngine})`,
+    });
   }
   if (!Array.isArray(m.permissions)) {
     errors.push({ field: 'permissions', message: 'permissions must be an array' });

@@ -4,9 +4,11 @@
 // （改写正在播放队列、控制播放、订阅播放状态等）。
 //
 // 架构：运行时能力由宿主注入到 `window.SongloftPlugin`（common.js + Flutter 宿主）。
-// native 客户端走 flutter_inappwebview.callHandler，Web 端插件页（Tab 内嵌页与
-// 首页/全屏页均在宿主 iframe 内）走 postMessage。本包是**类型层 + 便捷封装**，
-// 所有调用都委托给注入的全局对象，因此：
+// 传输由 common.js 按宿主环境自动选择，插件无需关心：
+//   - native 客户端 + WebF 渲染引擎 → webf.methodChannel
+//   - native 客户端 + 系统 WebView  → flutter_inappwebview.callHandler
+//   - Web 端插件页（Tab 内嵌页与首页/全屏页均在宿主 iframe 内）→ postMessage
+// 本包是**类型层 + 便捷封装**，所有调用都委托给注入的全局对象，因此：
 //   - native 客户端 webview 插件页、Web 端 iframe 内嵌插件页内有效；
 //   - 仅当用户通过「在浏览器中打开」将插件页在独立新标签打开（无宿主父窗口）、
 //     或宿主版本过旧时，`isClient()` / `host.isAvailable()` 返回 false，调用会抛出明确错误，请先 feature-detect。
