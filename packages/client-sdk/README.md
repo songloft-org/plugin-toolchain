@@ -94,6 +94,23 @@ if (isClient()) {
 
 完整类型见包内 `.d.ts`（`ClientSong` / `ClientPlayerState` / `HostInfo` / `PlayMode` 等）。
 
+### `getCookies(origin: string): Promise<Record<string, string>>`
+
+读取宿主 WebView Cookie Store 中指定 origin 的 Cookie（含 HttpOnly）。
+
+```ts
+import { getCookies } from '@songloft/client-sdk';
+
+const cookies = await getCookies('https://pcyear.5ddd.com');
+// { 'os-access-code': '...', 'music-token': '...' }
+```
+
+| 参数 | 说明 |
+|------|------|
+| `origin` | 目标站点 origin，含协议+主机+端口，如 `https://example.com` |
+
+> **⚠️ 仅原生客户端可用**（Android / iOS / macOS / Windows / Linux）。Web 端因浏览器同源策略限制无法读取跨源 Cookie，调用会 reject 并提示平台不支持。使用前建议通过 `host.getInfo()` 检查 `platform !== 'web'`。
+
 ## License
 
 Apache-2.0

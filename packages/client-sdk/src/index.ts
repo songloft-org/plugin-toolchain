@@ -141,6 +141,16 @@ export interface SongloftPluginHost {
 export interface SongloftPluginGlobal {
   host?: SongloftPluginHost;
   player?: SongloftPluginPlayer;
+  /**
+   * 读取宿主 WebView Cookie Store 中指定 origin 的 Cookie。
+   * 原生层读取，不受浏览器同源策略 / HttpOnly 限制。
+   *
+   * 仅原生客户端（Android/iOS/macOS/Windows/Linux）可用，Web 端调用会 reject。
+   *
+   * @param origin 目标站点 origin，例如 "https://example.com"（含协议 + 主机 + 端口）
+   * @returns name → value 映射；该 origin 无 Cookie 时返回空对象 {}
+   */
+  getCookies?(origin: string): Promise<Record<string, string>>;
   // 现有成员（主题 / API 工具）——保留为可选，避免与旧宿主冲突。
   getTheme?(): 'light' | 'dark';
   onThemeChange?(cb: (theme: 'light' | 'dark') => void): void;
@@ -213,3 +223,18 @@ export const host: SongloftPluginHost = {
   isAvailable: () => isClient(),
   getInfo: () => requireHost().getInfo(),
 };
+
+/**
+ * 读取宿主 WebView Cookie Store 中指定 origin 的 Cookie。
+ * 仅原生客户端可用，Web 端调用会 reject。
+ *
+ * @param origin 目标站点 origin，例如 "https://example.com"
+ * @returns name → value 映射
+ */
+export function getCookies(origin: string): Promise<Record<string, string>> {
+  const g = getGlobal();
+  if (!g || typeof g.getCookies !== 'function') {
+    return Promise.reject(new Error('getCookies is not available on this platform (requires native client)'));
+  }
+  return g.getCookies(origin);
+}
