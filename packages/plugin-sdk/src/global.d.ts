@@ -120,6 +120,13 @@ export interface ServeFileDirective {
    * - "music://xxx" → 解析为 music_path 下的路径（需 fs:music 权限）
    */
   filePath?: string;
+  /**
+   * 从第 N 秒起播（产出 chunked MP3 流，用于不支持 Range 的推流客户端）。
+   * 仅 filePath 模式有效；不可用时优雅降级为从头完整提供文件。
+   */
+  seekSeconds?: number;
+  /** 音频总时长秒数（用于 ffmpeg 超时计算）。省略或 0 表示未知（使用 3 小时兜底超时）。 */
+  durationSeconds?: number;
 }
 
 /** 插件返回的 HTTP 响应 */
