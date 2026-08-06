@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{{name}}</title>
+    <!--
+      刻意不引 common.css / common.js：宿主会在 <head> 里自动注入
+      （顺序 base → auth bridge → common.css → common.js，全部 render-blocking），
+      插件自己引会重复加载。页面的色板 / reset / 字体 / --sl-safe-* 全部来自 common.css。
+    -->
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

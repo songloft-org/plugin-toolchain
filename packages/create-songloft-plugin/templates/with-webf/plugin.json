@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/songloft-org/plugin-toolchain/main/schemas/plugin.schema.json",
+  "name": "{{name}}",
+  "version": "0.1.0",
+  "description": "{{description}}",
+  "author": "{{author}}",
+  "homepage": "",
+  "license": "Apache-2.0",
+  "icon": "icon.svg",
+  "entryPath": "{{entryPath}}",
+  "main": "main.js",
+  "minHostVersion": "2.6.0",
+  "renderEngine": "webf",
+  "permissions": {{permissions}},
+  "updateUrl": "",
+  "download_url": "",
+  "entryHash": "",
+  "zipHash": ""
+}

@@ -1,0 +1,20 @@
+{
+  "name": "{{entryPath}}",
+  "version": "0.1.0",
+  "description": "{{description}}",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "build:plugin": "songloft-plugin build",
+    "build": "rm -rf dist && npm run build:frontend && npm run build:plugin",
+    "dev": "songloft-plugin dev",
+    "validate": "songloft-plugin validate",
+    "publish:release": "songloft-plugin publish"
+  },
+  "devDependencies": {
+    "@songloft/plugin-builder": "workspace:^",
+    "@songloft/plugin-sdk": "workspace:^",
+    "typescript": "^5.9.3"
+  }
+}

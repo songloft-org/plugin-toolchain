@@ -54,7 +54,7 @@ interface Answers {
   author: string;
   permissions: string[];
   features: string[];
-  templateType: 'vanilla' | 'vue';
+  templateType: 'vanilla' | 'vue' | 'webf';
   packageManager: 'pnpm' | 'npm' | 'yarn';
 }
 
@@ -131,9 +131,10 @@ async function prompt(initialTarget?: string): Promise<Answers> {
     choices: [
       { name: 'Vanilla JS (传统静态页面)', value: 'vanilla' },
       { name: 'Vue 3 + Vite (现代化开发体验)', value: 'vue' },
+      { name: 'WebF 原生渲染 (Vue 3 + 宿主原生组件，renderEngine=webf)', value: 'webf' },
     ],
     default: 'vanilla',
-  })) as 'vanilla' | 'vue';
+  })) as 'vanilla' | 'vue' | 'webf';
 
   const packageManager = (await select({
     message: '选择包管理器',
@@ -159,6 +160,11 @@ function resolveTemplateDirs(templateType: string, features: string[]): string[]
   if (templateType === 'vue') {
     const vueDir = join(templatesRoot, 'with-vue');
     if (existsSync(vueDir)) dirs.push(vueDir);
+  }
+
+  if (templateType === 'webf') {
+    const webfDir = join(templatesRoot, 'with-webf');
+    if (existsSync(webfDir)) dirs.push(webfDir);
   }
 
   if (features.includes('static')) {
@@ -233,7 +239,10 @@ async function scaffold(answers: Answers): Promise<void> {
     }
   }
 
-  const textExts = new Set(['.json', '.ts', '.js', '.md', '.yml', '.yaml', '.html', '.css']);
+  // .vue 也算文本：否则 App.vue 里的 {{name}} 等占位符不会被替换（renderTemplate 只作用于
+  // 文本文件）。renderTemplate 的正则是 \{\{(\w+)\}\}，Vue 的插值 `{{ expr }}` 带空格/点号
+  // 不会被误匹配；未登记的 {{xxx}} 也原样保留，故对普通 Vue 代码安全。
+  const textExts = new Set(['.json', '.ts', '.js', '.md', '.yml', '.yaml', '.html', '.css', '.vue']);
   const textBasenames = new Set(['_gitignore', '.gitignore', 'README', 'LICENSE']);
 
   const vars: Record<string, string> = {

@@ -33,6 +33,7 @@ npm run build
 
 - `Vanilla JS`: 传统静态页面，原生 HTML/JS 开发，极简、无编译负担
 - `Vue 3 + Vite`: 现代化前端栈，内置 Vue 3 与 Pinia，支持 Vite 代理调试与 HMR，自带 WebView 样式兼容与静态路由重写机制
+- `WebF 原生渲染`: 声明 `renderEngine: "webf"`，插件页由 Flutter 原生绘制。基于官方 downloader 插件的推荐实践，内置引擎特性探测、宿主主题复用、一整套 `Sl*` 表单控件包装与绕开 WebF 缺陷的页面布局约束。详见[插件开发指南 · WebF 原生渲染](https://github.com/songloft-org/songloft/blob/main/docs/js-plugin-development-guide.md)
 
 **可选权限**（多选）：
 
@@ -60,7 +61,7 @@ npm run build
 | `static` | 静态页面 (`static/`) — 包含 HTML 模板和入口 JS；公共资源（CSS/字体/API 工具库）由主程序自动注入 |
 | `bin` | 可执行文件管理 (`bin/`) — 打包/下载/运行外部程序 |
 
-模板采用层叠合并设计：始终以 `base` 为基础骨架，再根据你选择的**前端模式**（Vanilla / Vue）以及选中的**附加功能**，智能组合出对应的初始化工程代码。
+模板采用层叠合并设计：始终以 `base` 为基础骨架，再根据你选择的**前端模式**（Vanilla / Vue / WebF）以及选中的**附加功能**，智能组合出对应的初始化工程代码。
 
 > 完整的插件开发指南（生命周期、API 参考、安全机制等）见 [JS 插件开发指南](https://github.com/songloft-org/songloft/blob/main/docs/js-plugin-development-guide.md)。
 

@@ -1,0 +1,316 @@
+/*
+ * WebF 插件样式 —— 一份「WebF 可用 CSS 子集」示例。
+ *
+ * ── 与宿主注入层的边界 ───────────────────────────────────────────────────────
+ *
+ * 色板（--md-*）、reset、body、字体、安全区变量（--sl-safe-*）、圆角/阴影令牌全部来自
+ * 宿主注入的 theme.css，这里不重复定义。**色板由宿主在运行时下推真实 ColorScheme**
+ * （含用户自定义主题）覆盖静态兜底值 —— 本页配色自动跟随主程序主题，本文件无需做任何事。
+ *
+ * 直接复用宿主 components.css 的组件类（本文件不重定义）：
+ *   .card                              卡片
+ *   .btn / .btn-filled / .btn-outlined / .btn-text   按钮（SlButton）
+ *   .switch / .switch-track / .switch-thumb          开关（SlSwitch）
+ *   .material-symbols-outlined         图标字体（SlIcon）
+ *
+ * 想用 JS 读色（喂原生控件属性）必须调 `SongloftPlugin.getColorScheme()`：WebF 的
+ * getComputedStyle 对自定义属性一律返回空串。本模板已无此需求（都走 CSS var()）。
+ *
+ * ── WebF 相关的硬约束（都有实测依据，别当成观感偏好改掉）──────────────────────
+ *
+ * ① 列表/单元文本必须 `white-space: nowrap` + ellipsis。可换行的 CJK 文本在 WebF 的
+ *    若干测量路径上会被按「每字一行」估高。
+ * ② 不用 `position: sticky`（WebF 下不生效，页面级也一样）。
+ * ③ 不用 `transform` 位移 `position: fixed` 元素。
+ * ④ 隐藏元素用 v-if 条件渲染，不用 `display: none`（后者仍挂 0 尺寸盒子）。
+ * ⑤ `.sl-listview` 必须有**确定 height**（不能 max-height，否则 `Infinity or NaN toInt`）。
+ * ⑥ 不用 max()/min()（WebF 未实现）；clamp() 可用且参数里能塞 var()。
+ * ⑦ `flex-wrap: wrap` 容器的子项必须给**显式 width**，否则每项独占一行。
+ * ⑧ **flex 容器里不套 flex 容器**（否则整个子树静默不绘制）。竖向堆叠一律块流
+ *    （display:block + margin），不用 flex-direction:column。横向 flex 行本身没问题。
+ */
+
+:root {
+  /* 列表高度兜底值（约束 ⑤：首帧就得有确定高度）。权威值由 layout.js measureListHeight
+   * 实测覆盖成内联 height —— 这里只保证首帧不崩。整条表达式放进变量避免 calc 里嵌 var 解析失败。 */
+  --sl-list-h: clamp(200px, calc(100vh - 220px), 720px);
+}
+
+/* ── 布局 ─────────────────────────────────────────────────────────────────── */
+
+/* 竖向堆叠靠 margin（约束 ⑧，不用 flex column + gap）。padding-bottom 被 layout.js 读解析值
+ * 参与列表高度核算。 */
+.sl-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-bottom: calc(16px + var(--sl-safe-bottom, 0px));
+}
+
+/* 自绘页头（tab / browser 模式，fullscreen 下宿主已有 AppBar）。横向 flex 行合规。 */
+.sl-appbar {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  margin-bottom: 8px;
+}
+.sl-appbar-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--md-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sl-card {
+  margin-bottom: 16px;
+}
+.sl-card-body {
+  padding: 16px;
+}
+
+.sl-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--md-on-surface-variant);
+  margin-bottom: 8px;
+}
+
+/* ── 表单控件包装（对应 ui/Sl*.vue）──────────────────────────────────────────── */
+
+/* HTML 回落分支的 input / select（浏览器 / 系统 WebView）。 */
+.sl-input,
+.sl-select {
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--md-on-surface);
+  background: var(--md-surface);
+  outline: none;
+}
+.sl-input:focus,
+.sl-select:focus {
+  border-color: var(--md-primary);
+}
+
+/* WebF cupertino input（SlInput 原生分支）：**只给尺寸，装饰交给 widget 自己画**
+ * （加 border/background 会画出内外两个框）。 */
+.sl-input-native {
+  display: block;
+  width: 100%;
+  height: 40px;
+}
+
+/*
+ * 下拉的 WebF 分支：触发按钮 + 绝对定位浮层（自绘）。触发按钮形制对齐原生 <select>：
+ * 矩形盒 + sm 圆角 + 左对齐 label + 右端 chevron。带 `.sl-select-wrap` 前缀抬 specificity
+ * 稳压宿主 .btn-outlined。display:block（非 .btn 的 inline-flex）：布局交给内层 .sl-btn-inner，
+ * 且 block>flex 不触发约束 ⑧。
+ */
+.sl-select-wrap {
+  position: relative;
+}
+.sl-select-wrap .sl-select-btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--md-outline);
+  border-radius: var(--md-radius-sm);
+  background: var(--md-surface);
+  color: var(--md-on-surface);
+}
+.sl-select-wrap .sl-select-btn:hover {
+  background: var(--md-surface-container-high);
+  border-color: var(--md-outline);
+}
+.sl-select-btn .sl-btn-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sl-select-btn .sl-btn-label {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sl-select-btn .sl-icon {
+  flex-shrink: 0;
+  color: var(--md-on-surface-variant);
+}
+
+/*
+ * 浮层面板。宽度必须是**显式 width**（width:100% 与 left/right+auto 都会因 shrink-to-fit
+ * 退回 auto，选中行背景只染文字宽）。box-sizing:border-box 让 1px 边框不撑宽。
+ * 祖先链不能有 overflow:hidden（否则面板被切）。max-height + overflow-y 是降级保护。
+ */
+.sl-select-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 20;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-radius-sm);
+  background: var(--md-surface-container);
+  box-shadow: var(--md-shadow-2);
+  padding: 4px 0;
+}
+.sl-select-option {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--md-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sl-select-option-on {
+  color: var(--md-on-secondary-container);
+  background: var(--md-secondary-container);
+}
+
+/* ── 按钮内部（SlButton 内）───────────────────────────────────────────────────
+ * ⚠️ **必须 inline-flex 不能 flex**（约束 ⑦）：写 flex 时按钮宽度变整个 viewport 宽，
+ * flex 容器里每个按钮各占一行。 */
+.sl-btn-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.sl-btn-label {
+  white-space: nowrap; /* 约束 ①：可换行 CJK 会量出「一字一行」的又窄又高的按钮 */
+  font-size: 14px;
+  font-weight: 500;
+}
+/* HTML 回落分支的 disabled（宿主 components.css 无 :disabled 规则）。 */
+.btn:disabled {
+  background: var(--md-surface-variant);
+  color: var(--md-on-surface-variant);
+  border-color: transparent;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+/* 约束 ⑧ 修补：宿主 `.btn` 是 inline-flex，落在页头这个 flex 容器里就是 flex 套 flex →
+ * 整个子树静默不绘制。降级 inline-block（内容排版由 .sl-btn-inner 承担）。 */
+.sl-appbar .btn {
+  display: inline-block;
+  line-height: 40px;
+}
+.sl-appbar .btn > .sl-btn-inner {
+  vertical-align: middle;
+}
+/* 图标按钮（页头齿轮 / 返回箭头）。**刻意不挂宿主 `.btn`**：那是 inline-flex，落点是 flex
+ * 容器 → 触发约束 ⑧。inline-block 不是 flex 容器且 shrink-to-fit。垂直居中靠 line-height。 */
+.sl-btn-icon {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--md-radius-full);
+  color: var(--md-on-surface-variant);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  line-height: 40px;
+}
+.sl-btn-icon .sl-btn-inner {
+  vertical-align: middle;
+}
+.sl-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ── 开关行（对齐 SwitchListTile：左标题+副标题，右开关）───────────────────────── */
+.sl-switch-row {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+}
+.sl-switch-row .sl-switch-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 表单字段（竖排：标签在上、控件在下，用块流不用 flex column —— 约束 ⑧）。 */
+.sl-field {
+  margin-bottom: 12px;
+}
+.sl-field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  color: var(--md-on-surface-variant);
+}
+
+/* ── 列表 ─────────────────────────────────────────────────────────────────────
+ * 列表容器高度必须确定（约束 ⑤）。兜底值 --sl-list-h，权威值由 layout.js measureListHeight
+ * 实测覆盖成内联 height。不能用 max-height / flex:1。 */
+.sl-listview {
+  display: block;
+  height: var(--sl-list-h);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-radius-sm);
+}
+/* overflow-y 只给 HTML 回落分支的 div；<webf-list-view> 自己就是滚动容器。 */
+div.sl-listview {
+  overflow-y: auto;
+}
+
+/* 列表行：横向 flex 行合规；行内竖排两层文本是**块流**（约束 ⑧）。 */
+.sl-row {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+.sl-row-main {
+  flex: 1;
+  min-width: 0;
+}
+.sl-title,
+.sl-sub {
+  display: block; /* 块流两层，不用竖向 flex（约束 ⑧） */
+  white-space: nowrap; /* 约束 ① */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sl-title {
+  font-size: 15px;
+  color: var(--md-on-surface);
+}
+.sl-sub {
+  font-size: 13px;
+  color: var(--md-on-surface-variant);
+}
+
+.sl-empty {
+  padding: 32px 16px;
+  text-align: center; /* 整体块流 + text-align:center，不是竖向 flex（约束 ⑧） */
+  color: var(--md-on-surface-variant);
+}
