@@ -2,7 +2,7 @@
 
 import * as esbuild from 'esbuild';
 import JSZip from 'jszip';
-import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, unlinkSync, readdirSync as readdirSyncTop } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, cpSync, unlinkSync, rmSync, readdirSync as readdirSyncTop } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -51,6 +51,14 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
   }
 
   // [2] esbuild 打包 src/main.ts → build/main.js
+  //
+  // _build 是**纯暂存目录**：最后整目录进 zip（addDirToZip(zip, buildDir, '')）且整目录
+  // 参与 computeCanonicalZipHash。所以它必须每次从零开始 —— 否则 [3.1.1] 步注入内容 hash
+  // 产出的 `style.<hash>.css` 会**逐次堆积**：同一份源码构建多次，zip 里会带上历史所有版本
+  // 的资源（实测 downloader 连构 4 次后 zip 里有 4 份 style.*.css），而 index.html 只引用
+  // 最新那份。后果不只是体积——`zipHash` 会随构建历史漂移，同样的源码算出不同的哈希，
+  // 这条哈希的完整性用途就没了。cpSync 是合并语义、不会替我们清，只能显式删。
+  rmSync(buildDir, { recursive: true, force: true });
   mkdirSync(buildDir, { recursive: true });
   const entryPoint = join(cwd, 'src', 'main.ts');
   const entryPointAlt = join(cwd, 'src', 'main.js');
