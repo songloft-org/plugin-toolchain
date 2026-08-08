@@ -188,7 +188,11 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     mainFileName = 'main.jsc';
     console.log(`  🔒 main.js compiled → main.jsc (via ${jscCmd})`);
   } catch {
-    // jsc 不可用或编译失败，保留 main.js
+    // jsc 可能在失败前已经创建了不完整的输出。回退到 main.js 时必须删除它，
+    // 否则宿主会优先加载 main.jsc，并与按 main.js 计算的 entryHash 失配。
+    if (existsSync(mainJscPath)) {
+      unlinkSync(mainJscPath);
+    }
     console.log(`  ⚠️  jsc not available, keeping main.js`);
   }
 
