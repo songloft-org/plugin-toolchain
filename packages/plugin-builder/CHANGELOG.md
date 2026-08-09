@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - 修复：`VALID_PERMISSIONS` 补齐后端已支持的 `net` 与 `persistent-storage` 权限，避免声明 UDP socket 权限的插件在 build/validate 阶段被拒。
+- 修复：`songloft-plugin dev` 监听 `frontend/` 源码变更并重新构建、上传插件，避免前端修改只触发无效的 Vite HMR。
 
 ## 0.4.0
 

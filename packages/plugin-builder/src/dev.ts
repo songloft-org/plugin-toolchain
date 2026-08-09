@@ -9,6 +9,7 @@ import type { PluginManifest } from '@songloft/plugin-sdk';
 const CONFIG_FILE = '.songloft-dev.json';
 const DEFAULT_HOST = 'http://localhost:58091';
 const WATCH_DIRS = ['src', 'static', 'bin'];
+const FRONTEND_DIR = 'frontend';
 const WATCH_FILES = ['plugin.json'];
 const DEBOUNCE_MS = 250;
 
@@ -91,18 +92,14 @@ export async function runDev(opts: DevOptions): Promise<void> {
 
   const frontendDir = join(cwd, 'frontend');
   const hasFrontend = existsSync(join(frontendDir, 'package.json'));
-  if (hasFrontend) {
-    console.log('\n🚀 Starting Vite dev server for frontend...');
-    const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    void import('node:child_process').then(({ spawn }) => {
-      spawn(npm, ['run', 'dev'], { cwd: frontendDir, stdio: 'inherit' });
-    });
-  }
 
   // 存在 frontend 时，static/ 是 vite build 的产物（buildPlugin 会写入它）。
   // 若继续 watch static，rebuild 写产物会再次触发 rebuild，陷入死循环——故排除。
-  // 前端源码由上面的 vite dev server 负责 HMR，插件逻辑改动仍走 src/ 触发重建上传。
-  const watchDirs = hasFrontend ? WATCH_DIRS.filter((d) => d !== 'static') : WATCH_DIRS;
+  // 插件页由 Songloft 后端提供已安装 ZIP 里的资源，不会连接独立 Vite dev server。
+  // 直接 watch frontend/，改动后走完整的 vite build -> ZIP -> upload 热重载链路。
+  const watchDirs = hasFrontend
+    ? [...WATCH_DIRS.filter((dir) => dir !== 'static'), FRONTEND_DIR]
+    : WATCH_DIRS;
 
   console.log('\n👀 watching for changes... (Ctrl+C to exit)');
   startWatcher(cwd, watchDirs, () => {
@@ -345,12 +342,12 @@ function startWatcher(cwd: string, watchDirs: string[], onChange: () => void): v
 }
 
 function shouldIgnore(filename: string): boolean {
+  const normalized = filename.replace(/\\/g, '/');
   return (
-    filename.includes('node_modules') ||
-    filename.startsWith('dist/') ||
-    filename.includes('/dist/') ||
-    filename.endsWith('.swp') ||
-    filename.endsWith('~')
+    normalized.split('/').includes('node_modules') ||
+    normalized.split('/').includes('dist') ||
+    normalized.endsWith('.swp') ||
+    normalized.endsWith('~')
   );
 }
 
