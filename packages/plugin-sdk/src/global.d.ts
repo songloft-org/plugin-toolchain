@@ -56,6 +56,10 @@ export interface Playlist {
   song_count: number;
   created_at: string;
   updated_at: string;
+  /** 歌单内歌曲的排序字段：position(默认)/added_at/title/artist/album/duration/updated_at/file_modified_at */
+  sort_by: string;
+  /** 歌单内歌曲的排序方向：asc(默认)/desc */
+  sort_order: string;
 }
 
 /** 插件清单（plugin.json） */
@@ -337,10 +341,11 @@ export interface SongloftPlaylists {
   list(): Promise<Playlist[]>;
   getById(id: number): Promise<Playlist | null>;
   /**
-   * 获取歌单中的歌曲。`options` 可选 limit/offset 控制分页；
-   * 不传 options 时返回最多 100000 条。
+   * 获取歌单中的歌曲。`options` 可选 limit/offset 控制分页；sort/order 控制排序
+   * （字段同 GET /playlists/{id}/songs：position(默认)/added_at/title/artist/album/duration/updated_at/file_modified_at，
+   * order 为 asc(默认)/desc）。不传 options 时返回最多 100000 条，按 position 升序。
    */
-  getSongs(playlistId: number, options?: { limit?: number; offset?: number }): Promise<Song[]>;
+  getSongs(playlistId: number, options?: { limit?: number; offset?: number; sort?: string; order?: string }): Promise<Song[]>;
   /** 搜索歌单（按名称关键词） */
   search(query: string, options?: { limit?: number; offset?: number }): Promise<Playlist[]>;
   /** 创建歌单 */
