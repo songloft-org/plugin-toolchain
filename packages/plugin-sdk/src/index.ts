@@ -328,6 +328,18 @@ function normalizeMusicUrl(r: ResolvedMusicUrl): { url: string; headers?: Record
   return { url: '' };
 }
 
+// Cookie 工具：Set-Cookie 解析、Cookie 请求头构建、跨域名 CookieJar。
+// 宿主 fetch 不自动带 Cookie，需要维护会话的插件用这些工具自行收集与回带。
+export {
+  CookieJar,
+  getSetCookie,
+  parseSetCookie,
+  parseCookieHeader,
+  stringifyCookieHeader,
+  buildCookieHeader,
+} from './cookie';
+export type { Cookie } from './cookie';
+
 // Re-export types for convenience
 export type {
   Song,
