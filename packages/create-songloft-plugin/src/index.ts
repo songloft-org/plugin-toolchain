@@ -20,9 +20,9 @@ import { input, select, checkbox, confirm } from '@inquirer/prompts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const SDK_VERSION = '^2.13.7';
-const CLIENT_SDK_VERSION = '^2.13.7';
-const BUILDER_VERSION = '^2.13.7';
+const SDK_VERSION = '^2.13.8';
+const CLIENT_SDK_VERSION = '^2.13.8';
+const BUILDER_VERSION = '^2.13.8';
 
 const AVAILABLE_PERMISSIONS = [
   { name: 'storage (持久化存储 - storage API)', value: 'storage' },
