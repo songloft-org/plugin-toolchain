@@ -314,6 +314,9 @@ export interface SongloftSongs {
   organizePreview(items: OrganizeItem[]): Promise<OrganizePreviewResult[]>;
   /** 执行目录整理（移动/重命名本地文件，需 songs.write 权限；CUE 跳过，同名冲突报错不覆盖） */
   organize(items: OrganizeItem[]): Promise<OrganizeResult[]>;
+  /** 异步刷新指定歌曲的元数据（仅限当前插件创建的歌曲，后台通过 HTTP Range + tag 库/ffprobe 提取；需 songs.write 权限）。
+   *  上限 200 首/次，超出截断。非本插件创建的歌曲会被静默跳过。 */
+  refreshMetadata(songIds: number[]): Promise<{ accepted: number; skipped: number }>;
 }
 
 /** 创建歌单的输入 */
