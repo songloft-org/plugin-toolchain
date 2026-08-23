@@ -135,14 +135,48 @@ export interface SongloftPluginHost {
   getInfo(): Promise<HostInfo>;
 }
 
+/** 宿主客户端能力：favorite 命名空间。 */
+export interface SongloftPluginFavorite {
+  /**
+   * 通知宿主刷新收藏状态缓存。
+   *
+   * 插件自己改完收藏（如直接 POST `/playlists/1/songs`）后必须调一次：服务端
+   * 数据是对的，但 Flutter 侧曲库的红心读的是 `FavoriteNotifier` 的内存缓存，
+   * 不会自动跟着变。
+   *
+   * **能带参就带参**——带参是增量更新，宿主只改这一首的归属；不带参是全量重载，
+   * 曲库上千首时是一次完整的往返。
+   *
+   * @param songId 歌曲 ID；省略则全量重载
+   * @param isFavorited 操作后的收藏态；省略则全量重载
+   */
+  refresh(songId?: number, isFavorited?: boolean): Promise<void>;
+}
+
 /**
  * 注入到页面的 `window.SongloftPlugin` 全局对象。
  * 由主程序 common.js 注入到所有插件 HTML 页面。此处仅声明本 SDK 依赖的成员，
  * 现有的 apiGet/apiPost/getTheme 等成员见插件开发指南。
+ *
+ * ⚠️ **这份声明必须与 `common.js` 末尾那个对象字面量保持一致**，它才是公开成员的
+ * 唯一真实来源。别在插件里另手写一份宿主 API 声明：曾经有插件自己声明了
+ * `invokeHost?`（当时它只存在于内部句柄 `window.__SongloftInternal`），于是
+ * `SongloftPlugin?.invokeHost?.(...)` 通过 TS 编译、运行时被可选调用静默吞掉，
+ * 整个功能一个字节都没发出去（songloft-org/songloft-plugin-miot#86）。
  */
 export interface SongloftPluginGlobal {
   host?: SongloftPluginHost;
   player?: SongloftPluginPlayer;
+  favorite?: SongloftPluginFavorite;
+  /**
+   * 通用宿主调用出口。`host` / `player` / `favorite` / `getCookies` 都是它的
+   * typed wrapper；公开它是为了让插件能触达尚未被 wrapper 覆盖的 namespace
+   * （宿主分发表在客户端侧，可能比服务端那份 common.js 更新）。
+   *
+   * ⚠️ 没有 wrapper 那层类型约束，`ns` / `method` 拼错只会在运行时 reject。
+   * 有对应 wrapper 时优先用 wrapper。
+   */
+  invokeHost?(ns: string, method: string, params?: Record<string, unknown>): Promise<unknown>;
   /**
    * 读取宿主 WebView Cookie Store 中指定 origin 的 Cookie。
    * 原生层读取，不受浏览器同源策略 / HttpOnly 限制。
@@ -226,6 +260,17 @@ export const host: SongloftPluginHost = {
   getInfo: () => requireHost().getInfo(),
 };
 
+function requireFavorite(): SongloftPluginFavorite {
+  const g = getGlobal();
+  if (!g || !g.favorite) throw new Error(NOT_AVAILABLE_MSG);
+  return g.favorite;
+}
+
+/** 收藏状态同步。委托注入的 `window.SongloftPlugin.favorite`。 */
+export const favorite: SongloftPluginFavorite = {
+  refresh: (songId, isFavorited) => requireFavorite().refresh(songId, isFavorited),
+};
+
 /**
  * 读取宿主 WebView Cookie Store 中指定 origin 的 Cookie。
  * 仅原生客户端可用，Web 端调用会 reject。
@@ -239,4 +284,28 @@ export function getCookies(origin: string): Promise<Record<string, string>> {
     return Promise.reject(new Error('getCookies is not available on this platform (requires native client)'));
   }
   return g.getCookies(origin);
+}
+
+/**
+ * 通用宿主调用。上面的 `player` / `host` / `favorite` / `getCookies` 都是它的
+ * typed wrapper —— **有 wrapper 时优先用 wrapper**，这里没有那层类型约束，
+ * `ns` / `method` 拼错只会在运行时 reject。
+ *
+ * 留这个出口是因为宿主分发表在客户端侧，可能比服务端那份 `common.js` 更新，
+ * 插件需要能触达尚未被 wrapper 覆盖的 namespace。
+ *
+ * @param ns 命名空间，如 "favorite"
+ * @param method 方法名，如 "refresh"
+ * @param params 参数对象，可省略
+ */
+export function invokeHost(
+  ns: string,
+  method: string,
+  params?: Record<string, unknown>,
+): Promise<unknown> {
+  const g = getGlobal();
+  if (!g || typeof g.invokeHost !== 'function') {
+    return Promise.reject(new Error(NOT_AVAILABLE_MSG));
+  }
+  return g.invokeHost(ns, method, params);
 }

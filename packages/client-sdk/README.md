@@ -94,6 +94,37 @@ if (isClient()) {
 
 完整类型见包内 `.d.ts`（`ClientSong` / `ClientPlayerState` / `HostInfo` / `PlayMode` 等）。
 
+### `favorite`
+
+收藏状态同步。插件自己改完收藏（如直接 POST `/playlists/1/songs`）后**必须**调一次——服务端数据是对的，但 Flutter 侧曲库的红心读的是 `FavoriteNotifier` 的内存缓存，不会自动跟着变。
+
+```ts
+import { favorite } from '@songloft/client-sdk';
+
+const res = await SongloftPlugin.apiPost('/playlists/1/songs', { song_id: id });
+await favorite.refresh(id, res.is_favorited);
+```
+
+| 方法 | 说明 |
+|------|------|
+| `refresh(songId?, isFavorited?)` | 带参 = 增量更新那一首；不带参 = 全量重载 |
+
+> **能带参就带参**：全量重载在曲库上千首时是一次完整往返。
+
+### `invokeHost(ns, method, params?): Promise<unknown>`
+
+通用宿主调用。上面的 `player` / `host` / `favorite` / `getCookies` 都是它的 typed wrapper；公开它是因为宿主分发表在**客户端**侧，可能比服务端那份 `common.js` 更新，插件需要能触达尚未被 wrapper 覆盖的 namespace。
+
+```ts
+import { invokeHost } from '@songloft/client-sdk';
+
+await invokeHost('favorite', 'refresh', { songId: 42, isFavorited: true });
+```
+
+> **⚠️ 没有 wrapper 那层类型约束**，`ns` / `method` 拼错只会在运行时 reject。**有对应 wrapper 时优先用 wrapper。**
+>
+> **⚠️ 不要在插件里手写宿主 API 的类型声明。** 用本包导出的 `SongloftPluginGlobal`。曾经有插件自己声明了 `invokeHost?`（当时它只存在于内部句柄 `window.__SongloftInternal`、公开对象里并没有），于是 `SongloftPlugin?.invokeHost?.(...)` 通过了 TS 编译、运行时被可选调用静默吞掉，整个功能一个字节都没发出去（songloft-org/songloft-plugin-miot#86）。
+
 ### `getCookies(origin: string): Promise<Record<string, string>>`
 
 读取宿主 WebView Cookie Store 中指定 origin 的 Cookie（含 HttpOnly）。
