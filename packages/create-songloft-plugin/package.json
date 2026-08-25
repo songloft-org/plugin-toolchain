@@ -1,6 +1,6 @@
 {
   "name": "create-songloft-plugin",
-  "version": "2.13.10",
+  "version": "2.13.11",
   "description": "Scaffolding tool for Songloft JS plugin projects",
   "type": "module",
   "bin": {
