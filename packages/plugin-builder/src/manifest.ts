@@ -31,6 +31,7 @@ const VALID_PERMISSIONS = [
   'websocket',
   'persistent-storage',
   'net',
+  'net:insecure-tls',
   'songs.*',
   'playlists.*',
   'fs.*',

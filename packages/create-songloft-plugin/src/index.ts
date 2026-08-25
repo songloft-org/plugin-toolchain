@@ -39,6 +39,7 @@ const AVAILABLE_PERMISSIONS = [
   { name: 'fs:external (访问管理员配置的外部目录)', value: 'fs:external' },
   { name: 'websocket (处理插件 WebSocket 连接)', value: 'websocket' },
   { name: 'net (UDP socket / SSDP / DLNA 发现)', value: 'net' },
+  { name: 'net:insecure-tls (fetch 跳过 TLS 证书校验 — 仅自签/裸 IP 访问的自建设备)', value: 'net:insecure-tls' },
 ];
 
 const AVAILABLE_FEATURES = [
