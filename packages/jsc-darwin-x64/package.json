@@ -1,6 +1,6 @@
 {
   "name": "@songloft/jsc-darwin-x64",
-  "version": "2.13.11",
+  "version": "2.14.0",
   "description": "QuickJS bytecode compiler for darwin x64",
   "main": "index.js",
   "files": [
