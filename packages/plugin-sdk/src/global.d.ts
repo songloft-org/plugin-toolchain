@@ -340,6 +340,36 @@ export interface AddSongsResult {
   skipped: number;
 }
 
+// ===== 标签（songloft.tags） =====
+
+export interface SongTag {
+  id: number;
+  name: string;
+  color: string;
+  song_count: number;
+  cover_url?: string;
+  created_at: string;
+}
+
+export interface SongloftTags {
+  /** 列出标签（支持 keyword 搜索、orderBy/order 排序、limit/offset 分页） */
+  list(options?: { keyword?: string; orderBy?: string; order?: string; limit?: number; offset?: number }): Promise<SongTag[]>;
+  /** 根据 ID 获取标签 */
+  getById(id: number): Promise<SongTag | null>;
+  /** 创建标签 */
+  create(opts: { name: string; color?: string }): Promise<SongTag>;
+  /** 更新标签（名称/颜色） */
+  update(id: number, fields: { name?: string; color?: string }): Promise<void>;
+  /** 删除标签 */
+  delete(id: number): Promise<void>;
+  /** 获取歌曲关联的所有标签 */
+  getSongTags(songId: number): Promise<SongTag[]>;
+  /** 批量将歌曲绑定到标签 */
+  bindSongs(tagId: number, songIds: number[]): Promise<{ bound: number }>;
+  /** 批量解绑歌曲与标签 */
+  unbindSongs(tagId: number, songIds: number[]): Promise<{ unbound: number }>;
+}
+
 export interface SongloftPlaylists {
   list(): Promise<Playlist[]>;
   getById(id: number): Promise<Playlist | null>;
@@ -722,6 +752,7 @@ export interface Songloft {
   persistentStorage: SongloftPersistentStorage;
   songs: SongloftSongs;
   playlists: SongloftPlaylists;
+  tags: SongloftTags;
   comm: SongloftComm;
   plugin: SongloftPlugin;
   jsenv: SongloftJSEnv;
