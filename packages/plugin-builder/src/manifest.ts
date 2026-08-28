@@ -32,8 +32,11 @@ const VALID_PERMISSIONS = [
   'persistent-storage',
   'net',
   'net:insecure-tls',
+  'tags.read',
+  'tags.write',
   'songs.*',
   'playlists.*',
+  'tags.*',
   'fs.*',
 ];
 

@@ -40,6 +40,8 @@ const AVAILABLE_PERMISSIONS = [
   { name: 'websocket (处理插件 WebSocket 连接)', value: 'websocket' },
   { name: 'net (UDP socket / SSDP / DLNA 发现)', value: 'net' },
   { name: 'net:insecure-tls (fetch 跳过 TLS 证书校验 — 仅自签/裸 IP 访问的自建设备)', value: 'net:insecure-tls' },
+  { name: 'tags.read (读取歌曲标签)', value: 'tags.read' },
+  { name: 'tags.write (修改歌曲标签)', value: 'tags.write' },
 ];
 
 const AVAILABLE_FEATURES = [
