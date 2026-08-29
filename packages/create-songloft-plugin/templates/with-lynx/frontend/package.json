@@ -1,0 +1,18 @@
+{
+  "name": "{{entryPath}}-frontend",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "rspeedy build"
+  },
+  "dependencies": {
+    "@lynx-js/react": "^0.123.0",
+    "@songloft/lynx-plugin-sdk": "^0.1.0"
+  },
+  "devDependencies": {
+    "@lynx-js/react-rsbuild-plugin": "^0.18.0",
+    "@lynx-js/rspeedy": "^0.16.0",
+    "@lynx-js/types": "^4.0.0"
+  }
+}

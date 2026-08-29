@@ -74,12 +74,14 @@ export interface PluginManifest {
   main: string;
   minHostVersion?: string;
   /**
-   * 客户端渲染插件 HTML 页面所用的引擎。
+   * 客户端渲染插件 UI 所用的引擎。
    * - `"webview"`：系统 WebView（宿主默认）
    * - `"webf"`：WebF（Flutter 原生渲染 HTML/CSS，与宿主 UI 同一渲染管线）
+   * - `"lynx"`：Lynx 原生渲染（ReactLynx 编译为 `.lynx.bundle`，宿主通过 `<frame>` 加载；
+   *   同时自动生成 `index.html` + `.web.bundle` 供 Flutter 客户端 WebView 回退）
    * 缺省或空串等同 `"webview"`。宿主不支持声明的引擎时会回退到 WebView。
    */
-  renderEngine?: 'webview' | 'webf';
+  renderEngine?: 'webview' | 'webf' | 'lynx';
   permissions: string[];
   /**
    * 无需 JWT 认证的路径前缀列表。

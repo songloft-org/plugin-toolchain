@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { readManifest, validateManifest } from './manifest.js';
 import { computeEntryHash, computeCanonicalZipHash, sha256Hex } from './hash.js';
 import { hashStaticAssets } from './static-assets.js';
+import { generateLynxIndexHtml } from './lynx-index-html.js';
 import type { PluginManifest } from '@songloft/plugin-sdk';
 
 // Windows 下 npm 是 npm.cmd，execFileSync/spawn 不走 shell，直接 'npm' 会 ENOENT
@@ -102,6 +103,34 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     if (existsSync(join(frontendDir, 'dist'))) {
       cpSync(join(frontendDir, 'dist'), join(buildDir, 'static'), { recursive: true });
     }
+  }
+
+  // [2.6] Lynx 插件后处理：rspeedy 产出 dist/lynx/ 和 dist/web/ 子目录，
+  //       将 bundle 文件提升到 static/ 根并生成 Flutter WebView 用的 index.html。
+  if (manifest.renderEngine === 'lynx') {
+    const staticOut = join(buildDir, 'static');
+    const lynxBundleDir = join(staticOut, 'lynx');
+    const webBundleDir = join(staticOut, 'web');
+    mkdirSync(staticOut, { recursive: true });
+
+    const lynxBundle = join(lynxBundleDir, 'main.lynx.bundle');
+    const webBundle = join(webBundleDir, 'main.web.bundle');
+
+    if (existsSync(lynxBundle)) {
+      cpSync(lynxBundle, join(staticOut, 'main.lynx.bundle'));
+    }
+    if (existsSync(webBundle)) {
+      cpSync(webBundle, join(staticOut, 'main.web.bundle'));
+    }
+
+    // Remove the intermediate subdirectories
+    rmSync(lynxBundleDir, { recursive: true, force: true });
+    rmSync(webBundleDir, { recursive: true, force: true });
+
+    // Generate index.html for Flutter WebView fallback (loads web-core + .web.bundle)
+    writeFileSync(join(staticOut, 'index.html'), generateLynxIndexHtml(manifest.entryPath));
+
+    console.log(`  🔗 Lynx bundles flattened + index.html generated`);
   }
 
   // [3] 拷贝 static/ 到 build/（如果存在）
