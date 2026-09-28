@@ -57,7 +57,7 @@ interface Answers {
   author: string;
   permissions: string[];
   features: string[];
-  templateType: 'vanilla' | 'vue' | 'webf' | 'lynx';
+  templateType: 'vanilla' | 'vue' | 'lynx';
   packageManager: 'pnpm' | 'npm' | 'yarn';
 }
 
@@ -134,11 +134,10 @@ async function prompt(initialTarget?: string): Promise<Answers> {
     choices: [
       { name: 'Vanilla JS (传统静态页面)', value: 'vanilla' },
       { name: 'Vue 3 + Vite (现代化开发体验)', value: 'vue' },
-      { name: 'WebF 原生渲染 (Vue 3 + 宿主原生组件，renderEngine=webf)', value: 'webf' },
       { name: 'Lynx 原生渲染 (ReactLynx + 跨平台原生 UI，renderEngine=lynx)', value: 'lynx' },
     ],
     default: 'vanilla',
-  })) as 'vanilla' | 'vue' | 'webf' | 'lynx';
+  })) as 'vanilla' | 'vue' | 'lynx';
 
   const packageManager = (await select({
     message: '选择包管理器',
@@ -164,11 +163,6 @@ function resolveTemplateDirs(templateType: string, features: string[]): string[]
   if (templateType === 'vue') {
     const vueDir = join(templatesRoot, 'with-vue');
     if (existsSync(vueDir)) dirs.push(vueDir);
-  }
-
-  if (templateType === 'webf') {
-    const webfDir = join(templatesRoot, 'with-webf');
-    if (existsSync(webfDir)) dirs.push(webfDir);
   }
 
   if (templateType === 'lynx') {

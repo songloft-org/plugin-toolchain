@@ -90,7 +90,7 @@ const theme = getTheme()
 
 ## 适用场景
 
-此 SDK 仅用于 `renderEngine: "lynx"` 的插件。WebView/WebF 插件使用 `@songloft/plugin-sdk`。
+此 SDK 仅用于 `renderEngine: "lynx"` 的插件。WebView 插件使用 `@songloft/plugin-sdk`。
 
 创建 Lynx 插件：
 

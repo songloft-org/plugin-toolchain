@@ -5,7 +5,6 @@
 //
 // 架构：运行时能力由宿主注入到 `window.SongloftPlugin`（common.js + Flutter 宿主）。
 // 传输由 common.js 按宿主环境自动选择，插件无需关心：
-//   - native 客户端 + WebF 渲染引擎 → webf.methodChannel
 //   - native 客户端 + 系统 WebView  → flutter_inappwebview.callHandler
 //   - Web 端插件页（Tab 内嵌页与首页/全屏页均在宿主 iframe 内）→ postMessage
 // 本包是**类型层 + 便捷封装**，所有调用都委托给注入的全局对象，因此：
