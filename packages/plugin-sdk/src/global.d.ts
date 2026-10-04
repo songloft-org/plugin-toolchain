@@ -114,6 +114,8 @@ export interface HTTPRequest {
   headers: Record<string, string>;
   body: Uint8Array | null;
   query: string;
+  /** TCP peer address (host:port); never taken from forwarding headers. Absent on older hosts/internal calls. */
+  remoteAddr?: string;
 }
 
 /** serveFile 指令：指示 Go 层直接 serve 文件（绕过 QuickJS string 管道） */
@@ -707,8 +709,9 @@ export interface SongloftNet {
   /**
    * 创建并绑定 UDP socket。
    * @param options.address 绑定地址，如 ":0"（随机端口）或 "0.0.0.0:1900"
+   * @param options.reuseAddress 启用 SO_REUSEADDR（默认 false）。用于共享 SSDP 多播端口；已存在的 socket 也须允许复用，旧宿主会忽略此选项。
    */
-  udpBind(options?: { address?: string }): Promise<UDPBindResult>;
+  udpBind(options?: { address?: string; reuseAddress?: boolean }): Promise<UDPBindResult>;
   /**
    * 发送 UDP 数据。data 为原始字符串（JS 侧自动 btoa 编码传输）。
    * @param addr 目标地址 "host:port"，如 "239.255.255.250:1900"
