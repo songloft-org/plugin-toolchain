@@ -4,6 +4,7 @@
  */
 
 import { getFrameId } from './globals.js'
+import { registerChild } from './registration.js'
 
 declare const NativeModules: Record<string, {
   hostCall(frameId: string, callId: string, ns: string, method: string, paramsJson: string): void
@@ -25,15 +26,9 @@ const pendingCalls = new Map<string, { resolve: (r: HostCallResult) => void }>()
 let initialized = false
 
 function ensureInit() {
+  registerChild()
   if (initialized) return
   initialized = true
-
-  try {
-    const frameId = getFrameId()
-    if (frameId && typeof NativeModules !== 'undefined') {
-      NativeModules.SongloftPluginBridge?.registerChild(frameId)
-    }
-  } catch { /* no-op */ }
 
   try {
     if (typeof lynx === 'undefined') return

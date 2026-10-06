@@ -58,6 +58,8 @@ const theme = getTheme()
 
 监听所有宿主推送事件。`cb(event, data)` 中 `event` 为事件名，`data` 为原始 JSON 字符串。
 
+事件订阅会注册子 frame，不要求先调用 RPC。原生宿主通过 `onPush` 推送 `event === 'lifecycle'`、`JSON.parse(data).state === 'resumed'`：首次订阅准备完成提供一次初始可见通知，此后每次恢复前台通知一次，插件自行重连/刷新快照。取消订阅后不再消费事件；宿主切换/关闭插件后停止推送。Web 使用浏览器可见性通知。已有插件需要用包含此注册逻辑的 SDK 重新构建，旧 bundle 不会自动获得这段 SDK 改动。
+
 ### `getGlobalProps(): Partial<PluginGlobalProps>`
 
 读取宿主通过 `<frame>` 元素注入的全局属性。

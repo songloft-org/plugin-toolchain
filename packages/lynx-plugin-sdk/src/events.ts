@@ -1,6 +1,7 @@
 /**
  * Event subscriptions — listen for state/theme pushes from the host.
  */
+import { registerChild, notifyPushReady } from './registration.js'
 
 declare const lynx: {
   getJSModule(name: string): { addListener(event: string, cb: (data: unknown) => void): void } | undefined
@@ -28,8 +29,8 @@ const themeListeners: ThemeCallback[] = []
 let eventsInitialized = false
 
 function ensureEvents() {
+  registerChild()
   if (eventsInitialized) return
-  eventsInitialized = true
 
   try {
     if (typeof lynx === 'undefined') return
@@ -56,13 +57,15 @@ function ensureEvents() {
         } catch { /* invalid JSON */ }
       }
     })
+    eventsInitialized = true
+    notifyPushReady()
   } catch { /* no emitter */ }
 }
 
 /** Subscribe to all push events from the host. */
 export function onPush(cb: PushCallback): () => void {
-  ensureEvents()
   pushListeners.push(cb)
+  ensureEvents()
   return () => {
     const i = pushListeners.indexOf(cb)
     if (i >= 0) pushListeners.splice(i, 1)
@@ -71,8 +74,8 @@ export function onPush(cb: PushCallback): () => void {
 
 /** Subscribe to player state updates from the host. */
 export function onPlayerState(cb: PlayerStateCallback): () => void {
-  ensureEvents()
   playerStateListeners.push(cb)
+  ensureEvents()
   return () => {
     const i = playerStateListeners.indexOf(cb)
     if (i >= 0) playerStateListeners.splice(i, 1)
@@ -81,8 +84,8 @@ export function onPlayerState(cb: PlayerStateCallback): () => void {
 
 /** Subscribe to theme changes from the host. */
 export function onThemeChange(cb: ThemeCallback): () => void {
-  ensureEvents()
   themeListeners.push(cb)
+  ensureEvents()
   return () => {
     const i = themeListeners.indexOf(cb)
     if (i >= 0) themeListeners.splice(i, 1)
