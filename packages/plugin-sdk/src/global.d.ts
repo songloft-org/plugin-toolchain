@@ -687,8 +687,31 @@ export interface TCPSocket {
   close(): Promise<void>;
 }
 
+/** HTTP headers arrive before the body. Values preserve repeated headers. */
+export interface HTTPStreamResponse {
+  status: number;
+  headers: Record<string, string[]>;
+}
+
+/** Pull-based byte reader. Needs net permission; the host closes it on unload. */
+export interface HTTPStream {
+  response: Promise<HTTPStreamResponse>;
+  /** Read at most 16 KiB. null means EOF; only one read may be pending. */
+  read(): Promise<Uint8Array | null>;
+  /** Idempotent; aborts connection setup and pending reads as well as the body. */
+  cancel(): Promise<void>;
+}
+
+export interface HTTPStreamOptions {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+  /** Total connection and body deadline, 100–30000 ms, default 30000. */
+  timeoutMs?: number;
+}
+
 /**
- * 网络 socket API（UDP + TCP）。
+ * 网络 socket 与 HTTP 流式 API（UDP + TCP）。
  *
  * UDP 典型用途：SSDP 设备发现（DLNA/UPnP）、mDNS、自定义 UDP 协议。
  * TCP 典型用途：控制本机守护进程（如 MPD 6600 端口的 idle 事件推送）。
@@ -703,9 +726,14 @@ export interface TCPSocket {
  * - 插件卸载/休眠时自动关闭所有 socket
  * - 需要 "net" 权限
  *
- * 所有方法都返回 Promise；调用方必须 await。
+ * UDP/TCP 方法返回 Promise；HTTP 流式请求立即返回可取消句柄。
  */
 export interface SongloftNet {
+  /** Optional on older hosts. HTTP(S), up to 8 live requests per plugin.
+   * Uses fetch TLS/redirect rules and a 64 MiB response limit. No automatic SSE
+   * parsing or reconnect. Cancel the handle in finally when stopping early.
+   */
+  httpStream?(url: string, options?: HTTPStreamOptions): HTTPStream;
   /**
    * 创建并绑定 UDP socket。
    * @param options.address 绑定地址，如 ":0"（随机端口）或 "0.0.0.0:1900"

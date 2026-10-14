@@ -365,6 +365,9 @@ export type {
   InboundWebSocketErrorEvent,
   SongloftWebSocketOptions,
   SongloftNet,
+  HTTPStream,
+  HTTPStreamResponse,
+  HTTPStreamOptions,
   UDPBindResult,
   NetDataEvent,
 } from './global';
