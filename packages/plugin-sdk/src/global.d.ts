@@ -314,7 +314,8 @@ export interface SongloftSongs {
     quality?: string;
   }): Promise<SongDownloadResult>;
   /** 批量创建远程歌曲（自动关联到当前插件） */
-  create(songs: CreateSongInput[]): Promise<Song[]>;
+  /** probeMetadata 默认 true；目录同步可设 false，避免同步时读取音频。 */
+  create(songs: CreateSongInput[], options?: { probeMetadata?: boolean }): Promise<Song[]>;
   /** 更新歌曲元数据（仅更新传入的字段） */
   update(id: number, fields: UpdateSongFields): Promise<Song>;
   /** 删除歌曲（含封面和缓存清理） */
@@ -402,6 +403,8 @@ export interface SongloftPlaylists {
   removeSongs(playlistId: number, songIds: number[]): Promise<void>;
   /** 重排序歌单中的歌曲（songIds 长度必须等于歌单内现有歌曲数） */
   reorder(playlistId: number, songIds: number[]): Promise<void>;
+  /** 原子替换普通歌单成员及顺序；空数组清空，重复/无效 ID 或内置歌单拒绝，失败回滚。 */
+  replaceSongs(playlistId: number, songIds: number[]): Promise<void>;
 }
 
 export interface SongloftComm {
