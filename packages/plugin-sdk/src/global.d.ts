@@ -357,6 +357,8 @@ export interface SongTag {
   name: string;
   color: string;
   song_count: number;
+  /** 可见歌单数；包含 #562 支持的宿主提供。 */
+  playlist_count?: number;
   cover_url?: string;
   created_at: string;
 }
@@ -374,6 +376,10 @@ export interface SongloftTags {
   delete(id: number): Promise<void>;
   /** 获取歌曲关联的所有标签 */
   getSongTags(songId: number): Promise<SongTag[]>;
+  /** 歌单与歌曲共享自定义标签；系统 labels 不受影响。 */
+  getPlaylistTags(playlistId: number): Promise<SongTag[]>;
+  bindPlaylists(tagId: number, playlistIds: number[]): Promise<{ bound: number }>;
+  unbindPlaylists(tagId: number, playlistIds: number[]): Promise<{ unbound: number }>;
   /** 批量将歌曲绑定到标签 */
   bindSongs(tagId: number, songIds: number[]): Promise<{ bound: number }>;
   /** 批量解绑歌曲与标签 */
