@@ -358,6 +358,7 @@ export type {
   SongloftJSEnvParallelResult,
   PlayEvent,
   PlayEventSong,
+  PlaylistSongsChangeEvent,
   WebSocketRequest,
   InboundWebSocket,
   InboundWebSocketMessageEvent,

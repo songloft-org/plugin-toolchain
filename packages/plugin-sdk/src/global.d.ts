@@ -40,6 +40,8 @@ export interface Song {
   cue_source_path?: string;
   cue_track_index?: number;
   added_at: string;
+  /** Time this song joined the queried playlist; added_at remains library time. */
+  playlist_added_at?: string;
   updated_at: string;
   file_modified_at?: string;
 }
@@ -595,6 +597,17 @@ export interface PlayEvent {
   timestamp: number;
 }
 
+/** One committed playlist membership change. Requires playlists.read. */
+export interface PlaylistSongsChangeEvent {
+  playlistId: number;
+  songId: number;
+  type: 'add' | 'remove';
+  /** Unix milliseconds at commit notification time. */
+  timestamp: number;
+  /** Metadata snapshot, also available after orphan song cleanup. */
+  song: { id: number; title: string; artist: string };
+}
+
 /**
  * 事件订阅 API。
  *
@@ -603,14 +616,21 @@ export interface PlayEvent {
  * 可在任意时刻调用（onInit、onHTTPRequest、定时器回调等），
  * 支持设置页面的开关场景。
  *
- * 未订阅的插件不会收到广播。插件休眠后订阅自动清除，
- * 懒加载恢复时需在 onInit 中重新注册。
+ * 未订阅的插件不会收到广播。空闲驱逐保留订阅并在下一次事件时唤醒插件；
+ * 在 onInit 中恢复处理器。主动取消或禁用插件会移除订阅。
  */
 export interface SongloftEvents {
   /** 订阅播放事件 */
   onPlayEvent(handler: (event: PlayEvent) => void | Promise<void>): void;
   /** 取消订阅播放事件 */
   offPlayEvent(): void;
+  /** Subscribe to committed add/remove operations (including Favorites, ID 1).
+   * Requires playlists.read. One handler per plugin; registration replaces it.
+   * Best-effort live delivery, without replay. Reorders emit no event.
+   */
+  onPlaylistSongsChange(handler: (event: PlaylistSongsChangeEvent) => void | Promise<void>): Promise<void>;
+  /** Unsubscribe from playlist membership changes. */
+  offPlaylistSongsChange(): Promise<void>;
 }
 
 /**
