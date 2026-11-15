@@ -115,6 +115,11 @@ Requests use `plugin.apiRequest`. The host binds the current frame's plugin iden
 
 ## 发布 / Publishing
 
-本包加入工具链统一发版（计划 v2.20.0），`scripts/release.mjs` 同步版本和脚手架依赖，Release workflow 发布 npm 包。首次发布需先完成 npm 身份认证及后续 Trusted Publisher 配置，不能把仅推送 main 视为 npm 已发布。
+本包加入工具链统一发版（从 v2.20.0 起），`scripts/release.mjs` 同步版本和脚手架依赖，Release workflow 发布 npm 包。首次发布需先完成 npm 身份认证及后续 Trusted Publisher 配置，不能把仅推送 main 视为 npm 已发布。
 
-This package participates in the unified toolchain release (planned v2.20.0). The release script synchronizes package/template versions and the Release workflow publishes to npm. Initial publishing needs npm authentication and subsequent Trusted Publisher configuration; a main-branch push alone does not publish the package.
+This package participates in the unified toolchain release (starting with v2.20.0). The release script synchronizes package/template versions and the Release workflow publishes to npm. Initial publishing needs npm authentication and subsequent Trusted Publisher configuration; a main-branch push alone does not publish the package.
+
+
+发布中途失败后，可以从 main 执行 `gh workflow run release.yml -f tag=v2.20.0` 恢复同一个 tag。源码仍固定到该 tag，发布工具取自工作流提交；已存在版本跳过，仅明确的 npm E404 才尝试发布，认证和网络失败会中止。首次发布 Lynx SDK 需 npm 账号完成浏览器验证，随后可在 npm 包设置中配置此仓库 `release.yml` 的 Trusted Publisher。
+
+After a partial failure, run `gh workflow run release.yml -f tag=v2.20.0` from main to resume the same tag. Package sources remain pinned to the tag; publishing tools come from the workflow revision. Existing versions are skipped; only explicit npm E404 results permit publishing, while authentication/network errors stop the run. Initial SDK publishing requires browser verification through an npm account; configure this repository's `release.yml` as a Trusted Publisher in the package settings afterward.

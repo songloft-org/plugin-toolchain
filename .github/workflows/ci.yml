@@ -31,6 +31,9 @@ jobs:
       - name: Run tests
         run: pnpm --filter "./packages/*" test
 
+      - name: Test partial release recovery
+        run: node --test scripts/tests/*.test.mjs
+
       - name: Smoke test plugin-builder
         run: node packages/plugin-builder/dist/cli.js --help || true
 

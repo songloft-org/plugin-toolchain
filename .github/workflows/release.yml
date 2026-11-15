@@ -4,9 +4,15 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '恢复发布的现有 tag，例如 v2.20.0'
+        required: true
+        type: string
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release-${{ inputs.tag || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -45,6 +51,8 @@ jobs:
             binary: jsc.exe
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - uses: actions/setup-go@v5
         with:
@@ -81,7 +89,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.ref }}
           fetch-depth: 0  # 需要全部历史，用于生成 release notes
+
+      - name: Checkout publishing tools from workflow revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-tools
 
       - uses: pnpm/action-setup@v4
 
@@ -104,9 +119,12 @@ jobs:
 
       - name: Verify version matches tag
         id: ver
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           set -e
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${RELEASE_TAG}"
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid release tag"; exit 1; }
           VERSION="${TAG#v}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -138,25 +156,8 @@ jobs:
             echo "✅ $pkg prepared (v$VERSION)"
           done
 
-      - name: Publish all packages to npm
-        # 先发布 jsc 平台子包（被 @songloft/jsc 主包 optionalDependencies 引用）
-        # 再发布其他所有包（含 @songloft/jsc 主包）
-        run: |
-          set -e
-          # 1. Publish jsc platform sub-packages first
-          for pkg in jsc-linux-x64 jsc-linux-arm64 jsc-darwin-x64 jsc-darwin-arm64 jsc-win32-x64 jsc-win32-arm64; do
-            echo "Publishing @songloft/$pkg..."
-            cd "packages/$pkg"
-            npm publish --access public --provenance || echo "⚠️ $pkg publish failed (may already exist)"
-            cd ../..
-          done
-          # 2. Publish remaining packages (plugin-sdk, client-sdk, plugin-builder, create-songloft-plugin, jsc)
-          pnpm --filter "./packages/plugin-sdk" publish --access public --no-git-checks
-          pnpm --filter "./packages/client-sdk" publish --access public --no-git-checks
-          pnpm --filter "./packages/lynx-plugin-sdk" publish --access public --no-git-checks
-          pnpm --filter "./packages/plugin-builder" publish --access public --no-git-checks
-          pnpm --filter "./packages/create-songloft-plugin" publish --access public --no-git-checks
-          pnpm --filter "./packages/jsc" publish --access public --no-git-checks
+      - name: Publish missing packages to npm
+        run: node .release-tools/scripts/publish-missing.mjs
         env:
           NPM_CONFIG_PROVENANCE: 'true'
 
