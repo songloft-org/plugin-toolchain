@@ -27,6 +27,7 @@ const ROOT = resolve(__dirname, '..');
 const PKGS = [
   'packages/plugin-sdk/package.json',
   'packages/client-sdk/package.json',
+  'packages/lynx-plugin-sdk/package.json',
   'packages/plugin-builder/package.json',
   'packages/create-songloft-plugin/package.json',
 ];
@@ -144,6 +145,7 @@ console.log('');
 console.log(`📦 plugin-toolchain release: ${current} → ${next}  (tag: ${tag})`);
 console.log(`   - @songloft/plugin-sdk`);
 console.log(`   - @songloft/client-sdk`);
+console.log(`   - @songloft/lynx-plugin-sdk`);
 console.log(`   - @songloft/plugin-builder`);
 console.log(`   - create-songloft-plugin`);
 console.log(`   - @songloft/jsc`);
@@ -193,12 +195,18 @@ if (DRY) {
   writeFileSync(idxAbs, idxSrc, 'utf8');
 }
 
+// Keep the Lynx template aligned with the unified toolchain release.
+const lynxTemplatePath = 'packages/create-songloft-plugin/templates/with-lynx/frontend/package.json';
+const lynxTemplate = readJson(lynxTemplatePath);
+lynxTemplate.dependencies['@songloft/lynx-plugin-sdk'] = `^${next}`;
+writeJson(lynxTemplatePath, lynxTemplate);
+
 // 6. 重新生成 lockfile
 console.log('📦 更新 pnpm-lock.yaml ...');
 shInherit('pnpm install --no-frozen-lockfile');
 
 // 7. commit + tag + push
-shInherit(`git add ${ALL_PKGS.join(' ')} ${SCAFFOLD_INDEX} pnpm-lock.yaml`);
+shInherit(`git add ${ALL_PKGS.join(' ')} ${SCAFFOLD_INDEX} ${lynxTemplatePath} pnpm-lock.yaml`);
 shInherit(`git commit -m "chore(release): ${tag}"`);
 shInherit(`git tag -a ${tag} -m "Release ${tag}"`);
 shInherit('git push --follow-tags');

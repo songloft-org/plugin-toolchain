@@ -6,14 +6,31 @@
 import { getFrameId } from './globals.js'
 import { registerChild } from './registration.js'
 
-declare const NativeModules: Record<string, {
-  hostCall(frameId: string, callId: string, ns: string, method: string, paramsJson: string): void
-  registerChild(frameId: string): void
-}> | undefined
+declare const NativeModules:
+  | Record<
+      string,
+      {
+        hostCall(
+          frameId: string,
+          callId: string,
+          ns: string,
+          method: string,
+          paramsJson: string,
+        ): void
+        registerChild(frameId: string): void
+      }
+    >
+  | undefined
 
-declare const lynx: {
-  getJSModule(name: string): { addListener(event: string, cb: (data: unknown) => void): void } | undefined
-} | undefined
+declare const lynx:
+  | {
+      getJSModule(
+        name: string,
+      ):
+        | { addListener(event: string, cb: (data: unknown) => void): void }
+        | undefined
+    }
+  | undefined
 
 export interface HostCallResult {
   ok: boolean
@@ -22,32 +39,43 @@ export interface HostCallResult {
 }
 
 let callIdCounter = 0
-const pendingCalls = new Map<string, { resolve: (r: HostCallResult) => void }>()
+const pendingCalls = new Map<
+  string,
+  {
+    resolve: (r: HostCallResult) => void
+    timer?: ReturnType<typeof setTimeout>
+  }
+>()
 let initialized = false
 
 function ensureInit() {
   registerChild()
   if (initialized) return
-  initialized = true
 
   try {
     if (typeof lynx === 'undefined') return
     const emitter = lynx.getJSModule('GlobalEventEmitter')
     if (!emitter) return
+    initialized = true
     emitter.addListener('SongloftPluginBridge.hostReply', (data: unknown) => {
       const payload = data as { callId?: string; result?: string }
       if (!payload?.callId) return
       const pending = pendingCalls.get(payload.callId)
       if (!pending) return
       pendingCalls.delete(payload.callId)
+      if (pending.timer !== undefined) clearTimeout(pending.timer)
       try {
-        const result: HostCallResult = JSON.parse(payload.result ?? '{"ok":false,"error":"empty reply"}')
+        const result: HostCallResult = JSON.parse(
+          payload.result ?? '{"ok":false,"error":"empty reply"}',
+        )
         pending.resolve(result)
       } catch {
         pending.resolve({ ok: false, error: 'invalid reply JSON' })
       }
     })
-  } catch { /* no emitter */ }
+  } catch {
+    /* no emitter */
+  }
 }
 
 /**
@@ -57,18 +85,34 @@ function ensureInit() {
  * const info = await invokeHost('host', 'getInfo')
  * await invokeHost('player', 'play', { id: 123 })
  */
-export function invokeHost(ns: string, method: string, params?: Record<string, unknown>): Promise<HostCallResult> {
+export function invokeHost(
+  ns: string,
+  method: string,
+  params?: Record<string, unknown>,
+  timeoutMs = 10000,
+): Promise<HostCallResult> {
   ensureInit()
   const frameId = getFrameId()
   const callId = `c${++callIdCounter}`
 
   return new Promise((resolve) => {
-    pendingCalls.set(callId, { resolve })
+    const pending = {
+      resolve,
+      timer: undefined as ReturnType<typeof setTimeout> | undefined,
+    }
+    pendingCalls.set(callId, pending)
 
     try {
-      if (typeof NativeModules !== 'undefined' && NativeModules.SongloftPluginBridge) {
+      if (
+        typeof NativeModules !== 'undefined' &&
+        NativeModules.SongloftPluginBridge
+      ) {
         NativeModules.SongloftPluginBridge.hostCall(
-          frameId, callId, ns, method, JSON.stringify(params ?? {}),
+          frameId,
+          callId,
+          ns,
+          method,
+          JSON.stringify(params ?? {}),
         )
       } else {
         pendingCalls.delete(callId)
@@ -80,11 +124,12 @@ export function invokeHost(ns: string, method: string, params?: Record<string, u
     }
 
     // Timeout: don't leave promises hanging forever
-    setTimeout(() => {
+    if (!pendingCalls.has(callId)) return
+    pending.timer = setTimeout(() => {
       if (pendingCalls.has(callId)) {
         pendingCalls.delete(callId)
         resolve({ ok: false, error: 'timeout' })
       }
-    }, 10000)
+    }, timeoutMs)
   })
 }

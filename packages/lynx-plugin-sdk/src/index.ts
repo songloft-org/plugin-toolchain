@@ -13,5 +13,11 @@
  */
 
 export { invokeHost, type HostCallResult } from './bridge.js'
-export { onPlayerState, onThemeChange, onPush, type PlayerState } from './events.js'
+export { apiGet, apiPost } from './api.js'
+export {
+  onPlayerState,
+  onThemeChange,
+  onPush,
+  type PlayerState,
+} from './events.js'
 export { getGlobalProps, getFrameId, getTheme } from './globals.js'

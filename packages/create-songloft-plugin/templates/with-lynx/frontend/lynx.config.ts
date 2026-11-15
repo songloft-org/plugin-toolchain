@@ -5,7 +5,7 @@ export default defineConfig({
   source: { entry: { main: './src/index.tsx' } },
   plugins: [pluginReactLynx()],
   environments: {
-    lynx: {},
+    lynx: { output: { distPath: { root: 'dist/lynx' } } },
     web: { output: { distPath: { root: 'dist/web' } } },
   },
 })

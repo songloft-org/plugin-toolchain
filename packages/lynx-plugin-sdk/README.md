@@ -100,3 +100,21 @@ const theme = getTheme()
 pnpm create @songloft/songloft-plugin
 # 选择 "Lynx 原生渲染" 模板
 ```
+
+## 插件业务请求 / Plugin API requests
+
+```ts
+import { apiGet, apiPost } from '@songloft/lynx-plugin-sdk'
+const status = await apiGet<{ logged_in: boolean }>('/api/login/status')
+await apiPost('/api/settings', { audio_quality: 'high' })
+```
+
+请求通过 `plugin.apiRequest` 交给当前 frame 的宿主；宿主绑定插件身份，处理服务器子路径与认证。只接受 `/api` 下的 GET/POST JSON 请求，禁止绝对地址、编码路径与路径穿越。成功返回业务数据，HTTP、桥接、超时或响应中的 `error` 会抛出异常。宿主请求上限 60 秒，SDK 等待回复上限 65 秒。旧宿主不支持时明确报错，需要更新 Lynx 客户端；Flutter/Web 回退需要更新服务端提供的 shim。插件不需要获取 Token。
+
+Requests use `plugin.apiRequest`. The host binds the current frame's plugin identity and supplies the server base path and authentication. Only GET/POST JSON requests under `/api` are accepted; absolute URLs, encoded route paths and traversal are rejected. Successful calls return business data. HTTP, bridge, timeout and response `error` failures throw. Host requests expire after 60 seconds; SDK replies expire after 65 seconds. Older hosts report an unsupported-call error: update the Lynx client, or the server-provided shim for Flutter/Web fallback. Plugins do not need access tokens.
+
+## 发布 / Publishing
+
+本包加入工具链统一发版（计划 v2.20.0），`scripts/release.mjs` 同步版本和脚手架依赖，Release workflow 发布 npm 包。首次发布需先完成 npm 身份认证及后续 Trusted Publisher 配置，不能把仅推送 main 视为 npm 已发布。
+
+This package participates in the unified toolchain release (planned v2.20.0). The release script synchronizes package/template versions and the Release workflow publishes to npm. Initial publishing needs npm authentication and subsequent Trusted Publisher configuration; a main-branch push alone does not publish the package.

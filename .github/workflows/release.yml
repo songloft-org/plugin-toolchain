@@ -87,7 +87,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
           registry-url: https://registry.npmjs.org/
 
@@ -95,8 +95,8 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Ensure npm supports Trusted Publishing (OIDC)
-        # 钉 npm@11(支持 OIDC Trusted Publishing 且兼容 Node 20.17+）；
-        # npm@latest(12.x) 要求 Node ≥22，与本 workflow 的 Node 20 冲突（EBADENGINE）。
+        # npm Trusted Publishing 要求 npm >=11.5.1 和 Node >=22.14。
+        # 钉 npm@11，避免 latest 的下一主版本改变发布环境。
         run: npm install -g npm@11
 
       - name: Build all packages
@@ -110,7 +110,7 @@ jobs:
           VERSION="${TAG#v}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          for pkg in plugin-sdk client-sdk plugin-builder create-songloft-plugin jsc; do
+          for pkg in plugin-sdk client-sdk lynx-plugin-sdk plugin-builder create-songloft-plugin jsc; do
             PKG_VER=$(node -p "require('./packages/$pkg/package.json').version")
             if [ "$PKG_VER" != "$VERSION" ]; then
               echo "❌ packages/$pkg/package.json version=$PKG_VER does not match tag=$VERSION"
@@ -153,6 +153,7 @@ jobs:
           # 2. Publish remaining packages (plugin-sdk, client-sdk, plugin-builder, create-songloft-plugin, jsc)
           pnpm --filter "./packages/plugin-sdk" publish --access public --no-git-checks
           pnpm --filter "./packages/client-sdk" publish --access public --no-git-checks
+          pnpm --filter "./packages/lynx-plugin-sdk" publish --access public --no-git-checks
           pnpm --filter "./packages/plugin-builder" publish --access public --no-git-checks
           pnpm --filter "./packages/create-songloft-plugin" publish --access public --no-git-checks
           pnpm --filter "./packages/jsc" publish --access public --no-git-checks
@@ -185,6 +186,7 @@ jobs:
             VER="${TAG#v}"
             echo "- \`@songloft/plugin-sdk@${VER}\`"
             echo "- \`@songloft/client-sdk@${VER}\`"
+            echo "- \`@songloft/lynx-plugin-sdk@${VER}\`"
             echo "- \`@songloft/plugin-builder@${VER}\`"
             echo "- \`create-songloft-plugin@${VER}\`"
             echo "- \`@songloft/jsc@${VER}\`"
