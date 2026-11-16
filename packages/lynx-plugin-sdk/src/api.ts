@@ -14,7 +14,7 @@ export function validateApiPath(path: string): void {
 }
 
 async function request<T>(
-  method: 'GET' | 'POST',
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   path: string,
   body?: unknown,
 ): Promise<T> {
@@ -36,3 +36,8 @@ export const apiGet = <T = unknown>(path: string): Promise<T> =>
   request<T>('GET', path)
 export const apiPost = <T = unknown>(path: string, body: unknown): Promise<T> =>
   request<T>('POST', path, body)
+
+export const apiPut = <T = unknown>(path: string, body: unknown): Promise<T> =>
+  request<T>('PUT', path, body)
+export const apiDelete = <T = unknown>(path: string): Promise<T> =>
+  request<T>('DELETE', path)

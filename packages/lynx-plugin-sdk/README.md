@@ -104,14 +104,16 @@ pnpm create @songloft/songloft-plugin
 ## 插件业务请求 / Plugin API requests
 
 ```ts
-import { apiGet, apiPost } from '@songloft/lynx-plugin-sdk'
+import { apiGet, apiPost, apiPut, apiDelete } from '@songloft/lynx-plugin-sdk'
 const status = await apiGet<{ logged_in: boolean }>('/api/login/status')
 await apiPost('/api/settings', { audio_quality: 'high' })
+await apiPut('/api/settings', { audio_quality: 'lossless' })
+await apiDelete('/api/groups?id=1')
 ```
 
-请求通过 `plugin.apiRequest` 交给当前 frame 的宿主；宿主绑定插件身份，处理服务器子路径与认证。只接受 `/api` 下的 GET/POST JSON 请求，禁止绝对地址、编码路径与路径穿越。成功返回业务数据，HTTP、桥接、超时或响应中的 `error` 会抛出异常。宿主请求上限 60 秒，SDK 等待回复上限 65 秒。旧宿主不支持时明确报错，需要更新 Lynx 客户端；Flutter/Web 回退需要更新服务端提供的 shim。插件不需要获取 Token。
+请求通过 `plugin.apiRequest` 交给当前 frame 的宿主；宿主绑定插件身份，处理服务器子路径与认证。只接受 `/api` 下的 GET/POST/PUT/DELETE JSON 请求，禁止绝对地址、编码路径与路径穿越。成功返回业务数据，HTTP、桥接、超时或响应中的 `error` 会抛出异常。宿主请求上限 60 秒，SDK 等待回复上限 65 秒。旧宿主不支持时明确报错，需要更新 Lynx 客户端；Flutter/Web 回退需要更新服务端提供的 shim。插件不需要获取 Token。
 
-Requests use `plugin.apiRequest`. The host binds the current frame's plugin identity and supplies the server base path and authentication. Only GET/POST JSON requests under `/api` are accepted; absolute URLs, encoded route paths and traversal are rejected. Successful calls return business data. HTTP, bridge, timeout and response `error` failures throw. Host requests expire after 60 seconds; SDK replies expire after 65 seconds. Older hosts report an unsupported-call error: update the Lynx client, or the server-provided shim for Flutter/Web fallback. Plugins do not need access tokens.
+Requests use `plugin.apiRequest`. The host binds the current frame's plugin identity and supplies the server base path and authentication. Only GET/POST/PUT/DELETE JSON requests under `/api` are accepted; absolute URLs, encoded route paths and traversal are rejected. Successful calls return business data. HTTP, bridge, timeout and response `error` failures throw. Host requests expire after 60 seconds; SDK replies expire after 65 seconds. Older hosts report an unsupported-call error: update the Lynx client, or the server-provided shim for Flutter/Web fallback. Plugins do not need access tokens.
 
 ## 发布 / Publishing
 
@@ -123,3 +125,20 @@ This package participates in the unified toolchain release (starting with v2.20.
 发布中途失败后，可以从 main 执行 `gh workflow run release.yml -f tag=v2.20.0` 恢复同一个 tag。源码仍固定到该 tag，发布工具取自工作流提交；已存在版本跳过，仅明确的 npm E404 才尝试发布，认证和网络失败会中止。首次发布 Lynx SDK 需 npm 账号完成浏览器验证，随后可在 npm 包设置中配置此仓库 `release.yml` 的 Trusted Publisher。
 
 After a partial failure, run `gh workflow run release.yml -f tag=v2.20.0` from main to resume the same tag. Package sources remain pinned to the tag; publishing tools come from the workflow revision. Existing versions are skipped; only explicit npm E404 results permit publishing, while authentication/network errors stop the run. Initial SDK publishing requires browser verification through an npm account; configure this repository's `release.yml` as a Trusted Publisher in the package settings afterward.
+
+## 文本连接 / Text sockets
+
+```ts
+import { PluginSocket } from '@songloft/lynx-plugin-sdk'
+const socket = new PluginSocket('/status/ws?device_id=example')
+socket.onopen = () => socket.send('refresh')
+socket.onmessage = ({ data }) => console.log(data)
+socket.onerror = () => console.log('connection failed')
+socket.onclose = () => console.log('closed')
+// Dispose on hide/unmount; create a fresh connection when resumed.
+socket.close()
+```
+
+路径仅限当前插件的相对路径；宿主提供服务器地址、子路径与认证，按 frame 限八条连接并在释放时关闭。`readyState` 为 0/1/2/3；文本上行最多 65536 字符。需要配套新版 Android/iOS/HarmonyOS/Web 宿主或服务端回退 shim；源码存在不代表 npm 已发布。
+
+Only relative paths within the current plugin are accepted. The host supplies server/base path/authentication, caps each frame at eight sockets and closes them on release. `readyState` is 0/1/2/3; outgoing text is limited to 65536 characters. Matching updated native/Web hosts or the server fallback shim are required. Source changes do not imply an npm publication.

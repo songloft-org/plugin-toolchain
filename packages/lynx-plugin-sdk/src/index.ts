@@ -13,7 +13,7 @@
  */
 
 export { invokeHost, type HostCallResult } from './bridge.js'
-export { apiGet, apiPost } from './api.js'
+export { apiGet, apiPost, apiPut, apiDelete } from './api.js'
 export {
   onPlayerState,
   onThemeChange,
@@ -21,3 +21,4 @@ export {
   type PlayerState,
 } from './events.js'
 export { getGlobalProps, getFrameId, getTheme } from './globals.js'
+export { PluginSocket } from './socket.js'

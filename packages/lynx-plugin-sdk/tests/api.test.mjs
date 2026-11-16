@@ -104,3 +104,23 @@ test('host errors, business errors and timeout reject and late replies are ignor
   await assert.rejects(p, /timeout/)
   h.reply({ ok: true, data: 'late' })
 })
+
+test('PUT and DELETE preserve plugin paths and request bodies', async () => {
+  const h = sdk()
+  const update = h.api.apiPut('/api/config', { enabled: false })
+  assert.deepEqual(JSON.parse(h.calls.at(-1)[4]), {
+    method: 'PUT',
+    path: '/api/config',
+    body: { enabled: false },
+  })
+  h.reply({ ok: true, data: { saved: true } })
+  assert.equal((await update).saved, true)
+  const remove = h.api.apiDelete('/api/groups?id=a%2Fb')
+  assert.deepEqual(JSON.parse(h.calls.at(-1)[4]), {
+    method: 'DELETE',
+    path: '/api/groups?id=a%2Fb',
+  })
+  h.reply({ ok: true, data: null })
+  assert.equal(await remove, null)
+  assert.equal(h.timers.size, 0)
+})
