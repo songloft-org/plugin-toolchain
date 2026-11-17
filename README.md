@@ -107,4 +107,16 @@ tag 推上后 [release.yml](./.github/workflows/release.yml) 会：
 
 ## License
 
-Apache-2.0
+仓库默认采用 [Apache-2.0](LICENSE)。各包的许可证以其 `package.json` 和包内 `LICENSE` 为准：
+
+- Apache-2.0：`@songloft/plugin-sdk`、`@songloft/client-sdk`、`@songloft/plugin-builder`、`create-songloft-plugin`、`@songloft/jsc`。
+- MIT：`@songloft/lynx-plugin-sdk`，以及 `@songloft/jsc-{darwin-arm64,darwin-x64,linux-arm64,linux-x64,win32-arm64,win32-x64}` 六个平台包。
+
+第三方依赖保留各自的许可证。
+
+The repository defaults to [Apache-2.0](LICENSE). Each package's `package.json` and bundled `LICENSE` define its license:
+
+- Apache-2.0: `@songloft/plugin-sdk`, `@songloft/client-sdk`, `@songloft/plugin-builder`, `create-songloft-plugin`, and `@songloft/jsc`.
+- MIT: `@songloft/lynx-plugin-sdk` and the six `@songloft/jsc-{darwin-arm64,darwin-x64,linux-arm64,linux-x64,win32-arm64,win32-x64}` platform packages.
+
+Third-party dependencies retain their own licenses.
