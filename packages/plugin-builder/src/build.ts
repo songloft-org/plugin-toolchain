@@ -115,11 +115,14 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     const lynxBundle = join(lynxBundleDir, 'main.lynx.bundle');
     const webBundle = join(webBundleDir, 'main.web.bundle');
 
+    let webBundleVersion: string | undefined;
     if (existsSync(lynxBundle)) {
       cpSync(lynxBundle, join(staticOut, 'main.lynx.bundle'));
     }
     if (existsSync(webBundle)) {
       cpSync(webBundle, join(staticOut, 'main.web.bundle'));
+      // SHA-256 前 16 位，与 MIoT/Bili 插件侧声明的版本格式一致。
+      webBundleVersion = sha256Hex(readFileSync(webBundle)).slice(0, 16);
     }
 
     // Remove the intermediate subdirectories
@@ -127,7 +130,7 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     rmSync(webBundleDir, { recursive: true, force: true });
 
     // Generate index.html for Flutter WebView fallback (loads web-core + .web.bundle)
-    writeFileSync(join(staticOut, 'index.html'), generateLynxIndexHtml(manifest.entryPath));
+    writeFileSync(join(staticOut, 'index.html'), generateLynxIndexHtml(manifest.entryPath, webBundleVersion));
 
     console.log(`  🔗 Lynx bundles flattened + index.html generated`);
   }

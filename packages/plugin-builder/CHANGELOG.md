@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Minor Changes
+
+- Lynx 插件回退页自动版本化：`songloft-plugin build` 平铺 `main.web.bundle` 时按内容计算 SHA-256 前 16 位，在生成的 `index.html` 桥接脚本上声明 `data-songloft-lynx-bundle="static/main.web.bundle?v=<hash>"`，插件更新后浏览器不再命中旧缓存。插件自带 `static/index.html` 时仍以插件的为准；带版本地址需要新版服务端（`lynx-plugin-bridge-shim` 读取声明）配合。
+
 ### Patch Changes
 
 - 修复：`VALID_PERMISSIONS` 补齐后端已支持的 `net` 与 `persistent-storage` 权限，避免声明 UDP socket 权限的插件在 build/validate 阶段被拒。
