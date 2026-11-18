@@ -12,8 +12,7 @@ import { hashStaticAssets } from './static-assets.js';
 import { generateLynxIndexHtml } from './lynx-index-html.js';
 import type { PluginManifest } from '@songloft/plugin-sdk';
 
-// Windows 下 npm 是 npm.cmd，execFileSync/spawn 不走 shell，直接 'npm' 会 ENOENT
-const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+import { runFrontendNpm } from './frontend-npm.js';
 
 export interface BuildOptions {
   cwd: string;
@@ -95,10 +94,10 @@ export async function buildPlugin(opts: BuildOptions): Promise<BuildResult> {
     // 仅在依赖缺失时安装：dev 模式每次热重载都会走到这里，无脑 npm install 会拖慢重建
     if (!existsSync(join(frontendDir, 'node_modules'))) {
       console.log(`  📦 Installing frontend dependencies...`);
-      execFileSync(NPM, ['install'], { cwd: frontendDir, stdio: 'inherit' });
+      runFrontendNpm(frontendDir, 'install');
     }
     console.log(`  🚀 Building frontend project...`);
-    execFileSync(NPM, ['run', 'build'], { cwd: frontendDir, stdio: 'inherit' });
+    runFrontendNpm(frontendDir, 'build');
     // 根据模板配置，产物会被直接输出到 cwd/static。但为了兼容自定义 dist 输出，加一个 fallback 拷贝：
     if (existsSync(join(frontendDir, 'dist'))) {
       cpSync(join(frontendDir, 'dist'), join(buildDir, 'static'), { recursive: true });

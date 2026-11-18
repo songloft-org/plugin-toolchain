@@ -22,7 +22,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "echo \"no tests yet\" && exit 0",
+    "test": "node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
