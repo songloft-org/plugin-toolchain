@@ -1,6 +1,6 @@
 {
   "name": "@songloft/lynx-plugin-sdk",
-  "version": "2.23.0",
+  "version": "2.24.0",
   "description": "SDK for Songloft plugins rendered via Lynx native (renderEngine: lynx)",
   "type": "module",
   "main": "dist/index.js",
