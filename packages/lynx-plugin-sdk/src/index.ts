@@ -22,3 +22,8 @@ export {
 } from './events.js'
 export { getGlobalProps, getFrameId, getTheme } from './globals.js'
 export { PluginSocket } from './socket.js'
+export type {
+  ApplyPlaybackAudioEffectsOptions,
+  PlaybackAudioEffects,
+  PlaybackAudioEffectsState,
+} from './audio-effects.js'

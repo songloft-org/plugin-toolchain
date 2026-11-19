@@ -50,6 +50,10 @@ const theme = getTheme()
 
 `PlayerState` 包含：`queue`、`current_index`、`current_song`、`is_playing`、`current_time`、`duration`、`volume`、`play_mode`、`source_playlist_id`。
 
+### 播放音效
+
+`host.getInfo` 公布 `player.audioEffects` 能力时，可通过 `invokeHost('player', 'getAudioEffects')` 获取会话和预设。沿用 `player` 命名空间的 `applyAudioEffects` 和 `clearAudioEffects` 操作该会话。类型定义为 `PlaybackAudioEffectsState`、`PlaybackAudioEffects` 和 `ApplyPlaybackAudioEffectsOptions`。见 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件播放音效)。
+
 ### `onThemeChange(cb): () => void`
 
 监听宿主推送的主题变更（`'light'` / `'dark'`）。返回取消订阅函数。

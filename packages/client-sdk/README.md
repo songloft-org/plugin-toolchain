@@ -94,6 +94,10 @@ if (isClient()) {
 
 完整类型见包内 `.d.ts`（`ClientSong` / `ClientPlayerState` / `HostInfo` / `PlayMode` 等）。
 
+### 播放音效
+
+通过 `host.getInfo().capabilities` 判断宿主是否提供 `player.audioEffects`。插件发起播放后，用 `player.getAudioEffects()` 读取 `playbackId` 和 `supported`。按宿主报告的预设调用 `player.applyAudioEffects({ playbackId, effects: { equalizer: { preset: 'vocal' } } })`。调用 `player.clearAudioEffects({ playbackId })` 恢复用户设置，当前歌曲继续播放。见 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件播放音效)。
+
 ### `favorite`
 
 收藏状态同步。插件自己改完收藏（如直接 POST `/playlists/1/songs`）后**必须**调一次——服务端数据是对的，但 Flutter 侧曲库的红心读的是 `FavoriteNotifier` 的内存缓存，不会自动跟着变。

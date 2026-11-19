@@ -83,12 +83,38 @@ export interface SetQueueOptions {
   sourcePlaylistId?: number;
 }
 
+/** Temporary host audio effects for a plugin's playback session. */
+export interface PlaybackAudioEffects {
+  equalizer?: { preset: string };
+  reverb?: { preset: string };
+}
+
+export interface PlaybackAudioEffectsState {
+  playbackId: string | null;
+  supported: {
+    equalizer?: { presets: string[] };
+    reverb?: { presets: string[] };
+  };
+  applied: PlaybackAudioEffects | null;
+}
+
+export interface ApplyPlaybackAudioEffectsOptions {
+  playbackId: string;
+  effects: PlaybackAudioEffects;
+}
+
 // ===== 注入的全局对象类型（window.SongloftPlugin） =====
 
 /** 宿主客户端能力：播放器命名空间。 */
 export interface SongloftPluginPlayer {
   /** 获取当前播放器状态快照 */
   getState(): Promise<ClientPlayerState>;
+  /** Query the output's supported effects and this plugin's current playback session. */
+  getAudioEffects(): Promise<PlaybackAudioEffectsState>;
+  /** Replace the temporary effects for this plugin's playback session. */
+  applyAudioEffects(options: ApplyPlaybackAudioEffectsOptions): Promise<PlaybackAudioEffects | null>;
+  /** Restore the user's effects for this plugin's playback session. */
+  clearAudioEffects(options: { playbackId: string }): Promise<void>;
   /** 用歌曲 id 列表替换整个正在播放队列并开始播放 */
   setQueue(ids: number[], options?: SetQueueOptions): Promise<void>;
   /** 追加歌曲到队列末尾（去重，不改变当前播放） */
@@ -235,6 +261,13 @@ function requireHost(): SongloftPluginHost {
 /** 播放器控制。所有方法委托注入的 `window.SongloftPlugin.player`。 */
 export const player: SongloftPluginPlayer = {
   getState: () => requirePlayer().getState(),
+  getAudioEffects: () =>
+    invokeHost('player', 'getAudioEffects') as Promise<PlaybackAudioEffectsState>,
+  applyAudioEffects: ({ playbackId, effects }) =>
+    invokeHost('player', 'applyAudioEffects', { playbackId, effects }) as Promise<PlaybackAudioEffects | null>,
+  clearAudioEffects: async ({ playbackId }) => {
+    await invokeHost('player', 'clearAudioEffects', { playbackId });
+  },
   setQueue: (ids, options) => requirePlayer().setQueue(ids, options),
   addToQueue: (ids) => requirePlayer().addToQueue(ids),
   insertToQueue: (index, id) => requirePlayer().insertToQueue(index, id),
