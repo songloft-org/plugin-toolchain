@@ -49,6 +49,7 @@ function sdk() {
   }
   return {
     api: modules.get('api'),
+    bridge: modules.get('bridge'),
     calls,
     timers,
     reply: (result) =>
@@ -122,5 +123,20 @@ test('PUT and DELETE preserve plugin paths and request bodies', async () => {
   })
   h.reply({ ok: true, data: null })
   assert.equal(await remove, null)
+  assert.equal(h.timers.size, 0)
+})
+
+test('fullscreen replies are confirmed only after a correlated successful response', async () => {
+  const h = sdk()
+  const video = h.bridge.invokeHost('player', 'openVideo', { id: 5 })
+  const [, callId, ns, method, params] = h.calls[0]
+  assert.equal(ns, 'player')
+  assert.equal(method, 'openVideo')
+  assert.deepEqual(JSON.parse(params), { id: 5, __songloftReplyAck: true })
+  assert.equal(h.calls.length, 1)
+  h.reply({ ok: true, data: null, acknowledge: true })
+  assert.equal((await video).ok, true)
+  await Promise.resolve()
+  assert.deepEqual(h.calls[1], ['bili-frame', callId, 'lifecycle', 'hostReplyReceived', '{}'])
   assert.equal(h.timers.size, 0)
 })

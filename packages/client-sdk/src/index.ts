@@ -109,6 +109,8 @@ export interface ApplyPlaybackAudioEffectsOptions {
 export interface SongloftPluginPlayer {
   /** 获取当前播放器状态快照 */
   getState(): Promise<ClientPlayerState>;
+  /** Request fullscreen playback of a video entry in the server library. */
+  openVideo(options: { id: number }): Promise<void>;
   /** Query the output's supported effects and this plugin's current playback session. */
   getAudioEffects(): Promise<PlaybackAudioEffectsState>;
   /** Replace the temporary effects for this plugin's playback session. */
@@ -158,6 +160,8 @@ export interface SongloftPluginHost {
   isAvailable(): boolean;
   /** 获取宿主信息与能力列表 */
   getInfo(): Promise<HostInfo>;
+  /** Hand an absolute HTTP(S) URL to the operating system. */
+  openExternalUrl(url: string): Promise<void>;
 }
 
 /** 宿主客户端能力：favorite 命名空间。 */
@@ -261,6 +265,9 @@ function requireHost(): SongloftPluginHost {
 /** 播放器控制。所有方法委托注入的 `window.SongloftPlugin.player`。 */
 export const player: SongloftPluginPlayer = {
   getState: () => requirePlayer().getState(),
+  openVideo: async ({ id }) => {
+    await invokeHost('player', 'openVideo', { id });
+  },
   getAudioEffects: () =>
     invokeHost('player', 'getAudioEffects') as Promise<PlaybackAudioEffectsState>,
   applyAudioEffects: ({ playbackId, effects }) =>
@@ -290,6 +297,9 @@ export const player: SongloftPluginPlayer = {
 export const host: SongloftPluginHost = {
   isAvailable: () => isClient(),
   getInfo: () => requireHost().getInfo(),
+  openExternalUrl: async (url) => {
+    await invokeHost('plugin', 'openUrl', { url });
+  },
 };
 
 function requireFavorite(): SongloftPluginFavorite {

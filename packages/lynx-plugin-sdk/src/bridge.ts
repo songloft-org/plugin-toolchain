@@ -65,10 +65,16 @@ function ensureInit() {
       pendingCalls.delete(payload.callId)
       if (pending.timer !== undefined) clearTimeout(pending.timer)
       try {
-        const result: HostCallResult = JSON.parse(
-          payload.result ?? '{"ok":false,"error":"empty reply"}',
-        )
+        const { acknowledge, ...result }: HostCallResult & { acknowledge?: true } =
+          JSON.parse(payload.result ?? '{"ok":false,"error":"empty reply"}')
         pending.resolve(result)
+        if (result.ok && acknowledge === true) {
+          const callId = payload.callId
+          void Promise.resolve().then(() => {
+            const bridge = typeof NativeModules !== 'undefined' && NativeModules.SongloftPluginBridge
+            bridge && bridge.hostCall(getFrameId(), callId, 'lifecycle', 'hostReplyReceived', '{}')
+          }).catch(error => console.error('Could not confirm host reply', error))
+        }
       } catch {
         pending.resolve({ ok: false, error: 'invalid reply JSON' })
       }
@@ -94,6 +100,8 @@ export function invokeHost(
   ensureInit()
   const frameId = getFrameId()
   const callId = `c${++callIdCounter}`
+  if (ns === 'player' && method === 'openVideo')
+    params = { ...params, __songloftReplyAck: true }
 
   return new Promise((resolve) => {
     const pending = {
