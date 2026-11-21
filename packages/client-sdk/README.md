@@ -102,6 +102,8 @@ if (isClient()) {
 
 通过 `host.getInfo().capabilities` 判断宿主是否提供 `player.audioEffects`。插件发起播放后，用 `player.getAudioEffects()` 读取 `playbackId` 和 `supported`。按宿主报告的预设调用 `player.applyAudioEffects({ playbackId, effects: { equalizer: { preset: 'vocal' } } })`。调用 `player.clearAudioEffects({ playbackId })` 恢复用户设置，当前歌曲继续播放。见 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件播放音效)。
 
+混响预设通过 `effects.reverb` 设置，立体声展宽通过 `effects.stereoWidth` 设置。从 2.25.0 开始，SDK 包含立体声展宽的类型定义。请从 `supported.reverb.presets` 和 `supported.stereoWidth.presets` 选择当前输出支持的预设。组合音效会为生效的 EQ 预留增益余量，可能降低音量。
+
 ### `favorite`
 
 收藏状态同步。插件自己改完收藏（如直接 POST `/playlists/1/songs`）后**必须**调一次——服务端数据是对的，但 Flutter 侧曲库的红心读的是 `FavoriteNotifier` 的内存缓存，不会自动跟着变。

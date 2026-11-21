@@ -2,6 +2,7 @@
 export interface PlaybackAudioEffects {
   equalizer?: { preset: string }
   reverb?: { preset: string }
+  stereoWidth?: { preset: string }
 }
 
 export interface PlaybackAudioEffectsState {
@@ -9,6 +10,7 @@ export interface PlaybackAudioEffectsState {
   supported: {
     equalizer?: { presets: string[] }
     reverb?: { presets: string[] }
+    stereoWidth?: { presets: string[] }
   }
   applied: PlaybackAudioEffects | null
 }
