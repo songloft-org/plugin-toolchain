@@ -98,6 +98,10 @@ if (isClient()) {
 
 使用 `host.openExternalUrl(url)` 打开绝对 HTTP(S) 链接，用 `player.openVideo({ id })` 全屏播放曲库视频。先通过 `host.getInfo().capabilities` 检查 `plugin.openUrl` 或 `player.openVideo`。 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件外链和全屏视频)
 
+### 打开宿主播放器和队列
+
+先通过 `host.getInfo().capabilities` 检查 `player.openPlayer` 或 `player.openQueue`。调用 `await player.openPlayer()` 打开当前歌曲的全屏播放器，或调用 `await player.openQueue()` 打开宿主队列。活动插件页可独立使用这两个方法。Lynx 和 Flutter 宿主均可通过插件包内的 `static/songloft-ui.json` 声明 `{"ui":{"playerBar":"host"}}` 来显示迷你播放栏。
+
 ### 播放音效
 
 通过 `host.getInfo().capabilities` 判断宿主是否提供 `player.audioEffects`。插件发起播放后，用 `player.getAudioEffects()` 读取 `playbackId` 和 `supported`。按宿主报告的预设调用 `player.applyAudioEffects({ playbackId, effects: { equalizer: { preset: 'vocal' } } })`。调用 `player.clearAudioEffects({ playbackId })` 恢复用户设置，当前歌曲继续播放。见 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件播放音效)。

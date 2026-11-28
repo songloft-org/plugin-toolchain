@@ -54,6 +54,10 @@ const theme = getTheme()
 
 使用 `invokeHost('plugin', 'openUrl', { url })` 打开绝对 HTTP(S) 链接，用 `invokeHost('player', 'openVideo', { id })` 全屏播放曲库视频。先通过 `host.getInfo` 检查 `plugin.openUrl` 或 `player.openVideo`。 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件外链和全屏视频)
 
+### 打开宿主播放器和队列
+
+从 `@songloft/lynx-plugin-sdk` 导入 `player`。通过 `invokeHost('host', 'getInfo')` 检查对应能力后，调用 `await player.openPlayer()` 打开当前歌曲的全屏播放器，或调用 `await player.openQueue()` 打开宿主队列。调用失败会抛出宿主错误。两个入口均独立于插件包内的播放栏声明 `static/songloft-ui.json`。
+
 ### 播放音效
 
 `host.getInfo` 公布 `player.audioEffects` 能力时，可通过 `invokeHost('player', 'getAudioEffects')` 获取会话和预设。沿用 `player` 命名空间的 `applyAudioEffects` 和 `clearAudioEffects` 操作该会话。类型定义为 `PlaybackAudioEffectsState`、`PlaybackAudioEffects` 和 `ApplyPlaybackAudioEffectsOptions`。见 [宿主接口文档](https://github.com/songloft-org/songloft-player-lynx/blob/main/docs/reference/plugin-client-sdk.md#插件播放音效)。

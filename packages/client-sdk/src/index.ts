@@ -111,6 +111,10 @@ export interface ApplyPlaybackAudioEffectsOptions {
 export interface SongloftPluginPlayer {
   /** 获取当前播放器状态快照 */
   getState(): Promise<ClientPlayerState>;
+  /** Open the fullscreen host player for the current song. Check player.openPlayer in host capabilities. */
+  openPlayer(): Promise<void>;
+  /** Open the host playback queue. Check player.openQueue in host capabilities. */
+  openQueue(): Promise<void>;
   /** Request fullscreen playback of a video entry in the server library. */
   openVideo(options: { id: number }): Promise<void>;
   /** Query the output's supported effects and this plugin's current playback session. */
@@ -264,9 +268,15 @@ function requireHost(): SongloftPluginHost {
   return g.host;
 }
 
-/** 播放器控制。所有方法委托注入的 `window.SongloftPlugin.player`。 */
+/** 播放器控制。调用由注入的 `window.SongloftPlugin` 桥接到宿主。 */
 export const player: SongloftPluginPlayer = {
   getState: () => requirePlayer().getState(),
+  openPlayer: async () => {
+    await invokeHost('player', 'openPlayer');
+  },
+  openQueue: async () => {
+    await invokeHost('player', 'openQueue');
+  },
   openVideo: async ({ id }) => {
     await invokeHost('player', 'openVideo', { id });
   },

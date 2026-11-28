@@ -28,7 +28,7 @@ function sdk() {
     },
     clearTimeout: (id) => timers.delete(id),
   }
-  for (const name of ['globals', 'registration', 'bridge', 'api']) {
+  for (const name of ['globals', 'registration', 'bridge', 'api', 'player']) {
     const source = readFileSync(
       new URL('../src/' + name + '.ts', import.meta.url),
       'utf8',
@@ -50,6 +50,7 @@ function sdk() {
   return {
     api: modules.get('api'),
     bridge: modules.get('bridge'),
+    player: modules.get('player').player,
     calls,
     timers,
     reply: (result) =>
@@ -138,5 +139,24 @@ test('fullscreen replies are confirmed only after a correlated successful respon
   assert.equal((await video).ok, true)
   await Promise.resolve()
   assert.deepEqual(h.calls[1], ['bili-frame', callId, 'lifecycle', 'hostReplyReceived', '{}'])
+  assert.equal(h.timers.size, 0)
+})
+
+test('playback UI methods forward parameterless calls and reject on a host error', async () => {
+  const h = sdk()
+  for (const method of ['openPlayer', 'openQueue']) {
+    const opened = h.player[method]()
+    const [, callId, ns, name, params] = h.calls.at(-1)
+    assert.deepEqual([ns, name, params], ['player', method, '{}'])
+    h.reply({ ok: true, data: null, acknowledge: true })
+    assert.equal(await opened, undefined)
+    assert.deepEqual(h.calls.at(-1), ['bili-frame', callId, 'lifecycle', 'hostReplyReceived', '{}'])
+  }
+
+  const rejected = assert.rejects(h.player.openPlayer(), /no current song/)
+  const pending = h.calls.at(-1)
+  h.reply({ ok: false, error: 'no current song' })
+  await rejected
+  assert.equal(h.calls.at(-1), pending)
   assert.equal(h.timers.size, 0)
 })

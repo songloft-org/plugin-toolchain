@@ -13,6 +13,7 @@
  */
 
 export { invokeHost, type HostCallResult } from './bridge.js'
+export { player } from './player.js'
 export { apiGet, apiPost, apiPut, apiDelete } from './api.js'
 export {
   onPlayerState,
